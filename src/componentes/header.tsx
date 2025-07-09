@@ -98,7 +98,7 @@ export default function Header() {
           <Button variant="contained" size="small" color="error">
             Cadastrar
           </Button>
-          <Button variant="outlined" size="small">
+          <Button variant="outlined" size="small" onClick={() => window.location.href = "/carrinho"}>
             <ShoppingCartIcon fontSize="small" />
           </Button>
         </Box>

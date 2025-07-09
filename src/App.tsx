@@ -13,6 +13,8 @@ import HomePage from "./pages/home";
 
 import { RequireRole } from "./middleware/requireRole";
 import Typography from "@mui/material/Typography";
+import CartPage from "./pages/cart";
+import ProductsPage from "./pages/products";
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<HomePage />} />
+        <Route path="/carrinho" element={<CartPage />} />
+        <Route path="/products" element={<ProductsPage />} />
 
         <Route
           path="/unauthorized"
