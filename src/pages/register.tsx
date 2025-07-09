@@ -38,6 +38,7 @@ export default function RegisterPage() {
     phone: "",
     password: "",
     confirmPassword: "",
+    contaComercial: false,
     acceptTerms: false,
     receiveEmails: false,
   });

@@ -12,6 +12,8 @@ import CardContent from "@mui/material/CardContent";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import imagensDestaques from "../utils/loadImage";
+import Header from "../componentes/header";
 
 export default function HomePage() {
   const stores = [
@@ -103,143 +105,98 @@ export default function HomePage() {
     },
   ];
 
+  const destaques = [
+    {
+      id: 1,
+      name: "Smartphone Galaxy Pro",
+      image: "src/berr.jpg",
+    },
+    {
+      id: 2,
+      name: "Fone Bluetooth Premium",
+      description:
+        "Fone de ouvido sem fio com cancelamento de ruído e 30h de bateria",
+      price: 299.9,
+      image: "/placeholder.svg?height=150&width=200",
+    },
+    {
+      id: 3,
+      name: "Smartwatch Fitness",
+      description: "Relógio inteligente com monitor cardíaco e GPS integrado",
+      price: 599.9,
+      image: "/placeholder.svg?height=150&width=200",
+    },
+    {
+      id: 4,
+      name: "Tablet 10 polegadas",
+      description:
+        "Tablet com tela HD, 64GB de armazenamento e processador octa-core",
+      price: 899.9,
+      image: "/placeholder.svg?height=150&width=200",
+    },
+  ];
+
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
       {/* Header */}
-      <Box
-        component="header"
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: 64,
-          px: 3,
-          boxShadow: 1,
-          bgcolor: "background.paper",
-        }}
-      >
-        <a
-          href="/"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
+      <Header />
+      {/* Hero Section */}
+      <Box component="section" sx={{ py: 8 }}>
+        <Box sx={{ maxWidth: 1200, mx: "auto", px: 2 }}>
           <Box
             sx={{
-              width: 32,
-              height: 32,
-              bgcolor: "error.main",
-              borderRadius: "50%",
               display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              mr: 1,
+              overflowX: "auto",
+              scrollSnapType: "x mandatory",
+              gap: 2,
+              pb: 2,
+              "&::-webkit-scrollbar": { display: "none" }, // esconde a scrollbar no Chrome
             }}
           >
-            <LocalShippingIcon fontSize="small" sx={{ color: "#fff" }} />
+            {imagensDestaques.map((img: string, index: number) => (
+              <Box
+                key={index}
+                sx={{
+                  minWidth: {
+                    xs: "85%", // quase toda a tela no mobile
+                    sm: "45%",
+                    md: "30%",
+                    lg: "22%",
+                  },
+                  scrollSnapAlign: "start",
+                  flexShrink: 0,
+                }}
+              >
+                <Card
+                  sx={{
+                    cursor: "pointer",
+                    "&:hover": { boxShadow: 6 },
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    maxHeight: "250px",
+                  }}
+                >
+                  <CardContent>
+                    <Box height={100} width={100}>
+                      <img
+                        src={img || "/placeholder.svg"}
+                        alt={`Destaque ${index + 1}`}
+                        height={100}
+                        width={100}
+                        style={{
+                          width: "100%",
+                          objectFit: "cover",
+                          borderTopLeftRadius: 8,
+                          borderTopRightRadius: 8,
+                        }}
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Box>
+            ))}
           </Box>
-          <Typography variant="h6" color="error">
-            MarketPlace
-          </Typography>
-        </a>
-
-        <Box
-          sx={{
-            display: { xs: "none", md: "flex" },
-            alignItems: "center",
-            gap: 1,
-            color: "text.secondary",
-          }}
-        >
-          <LocationOnIcon fontSize="small" />
-          <Typography variant="body2">Enviar para</Typography>
-          <Typography variant="body2" fontWeight="medium">
-            Rua das Flores, 123
-          </Typography>
-        </Box>
-
-        <Box sx={{ flexGrow: 1, maxWidth: 400, mx: 2 }}>
-          <TextField
-            placeholder="Buscar produtos ou lojas"
-            size="small"
-            variant="outlined"
-            fullWidth
-            InputProps={{
-              startAdornment: (
-                <Box sx={{ display: "flex", alignItems: "center", mr: 1 }}>
-                  <SearchIcon fontSize="small" sx={{ color: "#9CA3AF" }} />
-                </Box>
-              ),
-            }}
-          />
-        </Box>
-
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Button variant="text" size="small">
-            Entrar
-          </Button>
-          <Button variant="contained" size="small" color="error">
-            Cadastrar
-          </Button>
-          <Button variant="outlined" size="small">
-            <ShoppingCartIcon fontSize="small" />
-          </Button>
-        </Box>
-      </Box>
-
-      {/* Hero Section */}
-      <Box
-        component="section"
-        sx={{
-          bgcolor: "linear-gradient(90deg, #ef4444 0%, #dc2626 100%)",
-          color: "common.white",
-          py: 10,
-          textAlign: "center",
-          px: 2,
-        }}
-      >
-        <Typography variant="h3" fontWeight="bold" mb={2}>
-          Seus produtos favoritos, entregues com rapidez
-        </Typography>
-        <Typography variant="h6" mb={4} sx={{ opacity: 0.9 }}>
-          Descubra lojas e produtos incríveis perto de você
-        </Typography>
-        <Box
-          sx={{
-            maxWidth: 400,
-            mx: "auto",
-            position: "relative",
-          }}
-        >
-          <TextField
-            placeholder="Digite seu endereço"
-            fullWidth
-            size="medium"
-            sx={{ pr: 10 }}
-            InputProps={{
-              startAdornment: (
-                <Box sx={{ display: "flex", alignItems: "center", mr: 1 }}>
-                  <SearchIcon fontSize="small" sx={{ color: "#9CA3AF" }} />
-                </Box>
-              ),
-            }}
-          />
-          <Button
-            variant="contained"
-            color="error"
-            sx={{
-              position: "absolute",
-              right: 4,
-              top: "50%",
-              transform: "translateY(-50%)",
-              height: 40,
-            }}
-          >
-            Buscar
-          </Button>
         </Box>
       </Box>
 
