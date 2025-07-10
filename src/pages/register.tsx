@@ -16,9 +16,7 @@ import {
   Alert,
   Checkbox,
   FormControlLabel,
-  Grid,
 } from "@mui/material";
-
 import {
   Visibility,
   VisibilityOff,
@@ -27,6 +25,8 @@ import {
   ArrowBack,
   LocalShipping,
 } from "@mui/icons-material";
+import { register, login } from "../services/auth";
+import { useNavigate } from "react-router-dom";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,6 +42,7 @@ export default function RegisterPage() {
     acceptTerms: false,
     receiveEmails: false,
   });
+  const navigate = useNavigate();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -69,9 +70,8 @@ export default function RegisterPage() {
     if (!formData.password) newErrors.password = "Senha é obrigatória";
     if (formData.password.length < 6)
       newErrors.password = "Senha deve ter pelo menos 6 caracteres";
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword)
       newErrors.confirmPassword = "Senhas não coincidem";
-    }
     if (!formData.acceptTerms)
       newErrors.acceptTerms = "Você deve aceitar os termos";
 
@@ -85,13 +85,30 @@ export default function RegisterPage() {
     if (!validateForm()) return;
 
     setLoading(true);
+    setErrors({});
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      //Pegar a resposta  e verificar se deu certo
+      const resp = await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      });
+      if (!resp || !resp.id) {
+        throw new Error("Erro ao criar conta. Tente novamente.");
+      } else {
+        const loginResp = await login(formData.email, formData.password);
+        if (loginResp) {
+          navigate("/home");
+        }
+      }
       alert("Cadastro realizado com sucesso!");
-      window.location.href = "/login";
-    } catch (err) {
-      setErrors({ general: "Erro ao criar conta. Tente novamente." });
+    } catch (err: any) {
+      console.error("Erro no registro:", err);
+      setErrors({
+        general: err.message || "Erro ao criar conta. Tente novamente.",
+      });
     } finally {
       setLoading(false);
     }
@@ -167,7 +184,7 @@ export default function RegisterPage() {
               </Alert>
             )}
 
-            {/* Social Register */}
+            {/* Social */}
             <Box sx={{ mb: 3 }}>
               <Button
                 fullWidth
@@ -193,167 +210,166 @@ export default function RegisterPage() {
               </Typography>
             </Divider>
 
-            {/* Register Form */}
-            <Box component="form" onSubmit={handleSubmit}>
-              <Grid container spacing={2}>
-                <Grid>
-                  <TextField
-                    fullWidth
-                    label="Nome"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    error={!!errors.firstName}
-                    helperText={errors.firstName}
-                    required
-                  />
-                </Grid>
-                <Grid>
-                  <TextField
-                    fullWidth
-                    label="Sobrenome"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    error={!!errors.lastName}
-                    helperText={errors.lastName}
-                    required
-                  />
-                </Grid>
-                <Grid>
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    error={!!errors.email}
-                    helperText={errors.email}
-                    required
-                    placeholder="seu@email.com"
-                  />
-                </Grid>
-                <Grid>
-                  <TextField
-                    fullWidth
-                    label="Telefone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    error={!!errors.phone}
-                    helperText={errors.phone}
-                    required
-                    placeholder="(11) 99999-9999"
-                  />
-                </Grid>
-                <Grid>
-                  <TextField
-                    fullWidth
-                    label="Senha"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleChange}
-                    error={!!errors.password}
-                    helperText={errors.password}
-                    required
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid>
-                  <TextField
-                    fullWidth
-                    label="Confirmar Senha"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    error={!!errors.confirmPassword}
-                    helperText={errors.confirmPassword}
-                    required
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                            edge="end"
-                          >
-                            {showConfirmPassword ? (
-                              <VisibilityOff />
-                            ) : (
-                              <Visibility />
-                            )}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-              </Grid>
+            {/* Formulário */}
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+              sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}
+            >
+              <TextField
+                fullWidth
+                label="Nome"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                error={!!errors.firstName}
+                helperText={errors.firstName}
+                required
+                sx={{ flex: { xs: "1 1 100%", sm: "1 1 48%" } }}
+              />
 
-              <Box sx={{ mt: 3 }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="acceptTerms"
-                      checked={formData.acceptTerms}
-                      onChange={handleChange}
-                      size="small"
-                    />
-                  }
-                  label={
-                    <Typography variant="body2">
-                      Eu aceito os{" "}
-                      <Typography
-                        component="a"
-                        href="/terms"
-                        sx={{
-                          color: "#f44336",
-                          cursor: "pointer",
-                          textDecoration: "underline",
-                        }}
+              <TextField
+                fullWidth
+                label="Sobrenome"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                error={!!errors.lastName}
+                helperText={errors.lastName}
+                required
+                sx={{ flex: { xs: "1 1 100%", sm: "1 1 48%" } }}
+              />
+
+              <TextField
+                fullWidth
+                label="Email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                error={!!errors.email}
+                helperText={errors.email}
+                required
+                placeholder="seu@email.com"
+                sx={{ flex: { xs: "1 1 100%", sm: "1 1 48%" } }}
+              />
+
+              <TextField
+                fullWidth
+                label="Telefone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                error={!!errors.phone}
+                helperText={errors.phone}
+                required
+                placeholder="(11) 99999-9999"
+                sx={{ flex: { xs: "1 1 100%", sm: "1 1 48%" } }}
+              />
+
+              <TextField
+                fullWidth
+                label="Senha"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleChange}
+                error={!!errors.password}
+                helperText={errors.password}
+                required
+                sx={{ flex: { xs: "1 1 100%", sm: "1 1 48%" } }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
                       >
-                        Termos de Uso
-                      </Typography>{" "}
-                      e{" "}
-                      <Typography
-                        component="a"
-                        href="/privacy"
-                        sx={{
-                          color: "#f44336",
-                          cursor: "pointer",
-                          textDecoration: "underline",
-                        }}
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <TextField
+                fullWidth
+                label="Confirmar Senha"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+                required
+                sx={{ flex: { xs: "1 1 100%", sm: "1 1 48%" } }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        edge="end"
                       >
-                        Política de Privacidade
-                      </Typography>
+                        {showConfirmPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    name="acceptTerms"
+                    checked={formData.acceptTerms}
+                    onChange={handleChange}
+                    size="small"
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    Eu aceito os{" "}
+                    <Typography
+                      component="a"
+                      href="/terms"
+                      sx={{
+                        color: "#f44336",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Termos de Uso
+                    </Typography>{" "}
+                    e{" "}
+                    <Typography
+                      component="a"
+                      href="/privacy"
+                      sx={{
+                        color: "#f44336",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Política de Privacidade
                     </Typography>
-                  }
-                />
-                {errors.acceptTerms && (
-                  <Typography
-                    variant="caption"
-                    color="error"
-                    sx={{ display: "block", ml: 4 }}
-                  >
-                    {errors.acceptTerms}
                   </Typography>
-                )}
-              </Box>
+                }
+              />
+              {errors.acceptTerms && (
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ display: "block", ml: 4 }}
+                >
+                  {errors.acceptTerms}
+                </Typography>
+              )}
 
               <FormControlLabel
                 control={
@@ -369,7 +385,6 @@ export default function RegisterPage() {
                     Quero receber ofertas e novidades por email
                   </Typography>
                 }
-                sx={{ mb: 3 }}
               />
 
               <Button
@@ -391,6 +406,7 @@ export default function RegisterPage() {
               </Button>
             </Box>
 
+            {/* Footer */}
             <Typography
               variant="body2"
               color="text.secondary"

@@ -6,7 +6,6 @@ const api = axios.create({
 
 // Middleware de requisição: insere o token
 api.interceptors.request.use((config) => {
-  0;
   const token = localStorage.getItem("token");
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;

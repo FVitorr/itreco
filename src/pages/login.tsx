@@ -22,10 +22,11 @@ import {
   ArrowBack,
   LocalShipping,
 } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom"; // <- substituto de next/router
+import { useNavigate } from "react-router-dom";
+import { login } from "../services/auth";
 
 export default function LoginPage() {
-  const navigate = useNavigate(); // substitui useRouter
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -48,22 +49,11 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    // Simulação de login
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      if (
-        formData.email === "admin@test.com" &&
-        formData.password === "123456"
-      ) {
-        alert("Login realizado com sucesso!");
-        // Redireciona para a tela principal
-        navigate("/home");
-      } else {
-        setError("Email ou senha incorretos");
-      }
-    } catch (err) {
-      setError("Erro ao fazer login. Tente novamente.");
+      await login(formData.email, formData.password);
+      navigate("/home");
+    } catch (err: any) {
+      setError(err.message || "Erro ao fazer login. Tente novamente.");
     } finally {
       setLoading(false);
     }
