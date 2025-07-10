@@ -5,12 +5,20 @@ const api = axios.create({
 });
 
 // Middleware de requisição: insere o token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+
+    console.log("Interceptando token:", token);
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    // Se der erro antes da requisição ser feita
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 export default api;

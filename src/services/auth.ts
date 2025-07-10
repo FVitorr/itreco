@@ -1,4 +1,7 @@
 // services/auth.ts
+import  api from "./api"
+
+
 interface RegisterData {
   firstName: string;
   lastName: string;
@@ -33,6 +36,20 @@ export async function login(email: string, password: string) {
 
   localStorage.setItem("token", data.access_token);
   return data;
+}
+
+export async function getUserInfo() {
+  try {
+    const response = await api.get("/auth/info");
+    return response.data;
+  } catch (error: any) {
+    // Você pode customizar o tratamento de erro aqui
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "Falha ao buscar dados do usuário";
+    throw new Error(message);
+  }
 }
 
 export async function register(data: RegisterData) {

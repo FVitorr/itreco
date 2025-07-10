@@ -1,22 +1,32 @@
+import { useState, useEffect } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import LocationOnIcon from "@mui/icons-material/LocationOn"; // para MapPin
-import StarIcon from "@mui/icons-material/Star";
-import AccessTimeIcon from "@mui/icons-material/AccessTime"; // para Clock
-import LocalShippingIcon from "@mui/icons-material/LocalShipping"; // para Truck
-
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 
+import { getUserInfo } from "../services/auth";
+import { UserDTO } from "../dtos/User.dtos";
+
 export default function Header() {
-  const userInfo = {
-    from: "Rua das Flores, 123",
-  };
+  const [userInfo, setUserInfo] = useState<UserDTO | null>(null);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const user = await getUserInfo();
+        setUserInfo(user);
+      } catch (error) {
+        console.error("Erro ao buscar usuário:", error);
+      }
+    }
+
+    fetchUser();
+  }, []);  
 
   return (
     <>
@@ -98,7 +108,11 @@ export default function Header() {
           <Button variant="contained" size="small" color="error">
             Cadastrar
           </Button>
-          <Button variant="outlined" size="small" onClick={() => window.location.href = "/carrinho"}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => (window.location.href = "/carrinho")}
+          >
             <ShoppingCartIcon fontSize="small" />
           </Button>
         </Box>
