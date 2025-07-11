@@ -8,8 +8,8 @@ import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 
-import { getUserInfo } from "../services/auth";
-import { UserDTO } from "../dtos/User.dtos";
+import { getUserInfo } from "../../services/auth";
+import { UserDTO } from "../../dtos/user.dtos";
 
 export default function Header() {
   const [userInfo, setUserInfo] = useState<UserDTO | null>(null);
@@ -43,7 +43,7 @@ export default function Header() {
         }}
       >
         <a
-          href="/"
+          href="/public"
           style={{
             display: "flex",
             alignItems: "center",

@@ -13,7 +13,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import Header from "../componentes/header";
+import Header from "./componentes/header";
 
 interface Product {
   id: number;

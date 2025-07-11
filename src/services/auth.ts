@@ -1,5 +1,5 @@
-// services/auth.ts
 import  api from "./api"
+import {UserRegisterData} from "../dtos/user.dtos";
 
 
 interface RegisterData {
@@ -52,7 +52,7 @@ export async function getUserInfo() {
   }
 }
 
-export async function register(data: RegisterData) {
+export async function register(data: UserRegisterData) {
   const response = await fetch(`${API}/user/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

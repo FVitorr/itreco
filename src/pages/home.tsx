@@ -13,8 +13,8 @@ import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import imagensDestaques from "../utils/loadImage";
-import Header from "../componentes/header";
-import Footer from "../componentes/footer";
+import Header from "./componentes/header";
+import Footer from "./componentes/footer";
 
 export default function HomePage() {
   const stores = [

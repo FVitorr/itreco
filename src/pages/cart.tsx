@@ -8,7 +8,7 @@ import CardContent from "@mui/material/CardContent";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import Header from "../componentes/header";
+import Header from "./componentes/header";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 
 export default function CartPage() {
