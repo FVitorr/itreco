@@ -1,5 +1,7 @@
-import api from "./api"
+import { Category } from "../dtos/category.dto";
+import api from "./api";
 
-export async function getCategory() {
-    return await api.get("/category").data;
+export async function getCategory(): Promise<Category[]> {
+  const response = await api.get<Category[]>("/category");
+  return response.data;
 }

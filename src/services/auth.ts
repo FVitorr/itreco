@@ -1,6 +1,5 @@
-import  api from "./api"
-import {UserRegisterData} from "../dtos/user.dtos";
-
+import api from "./api";
+import { User, UserRegisterData } from "../dtos/user.dto";
 
 interface RegisterData {
   firstName: string;
@@ -34,22 +33,14 @@ export async function login(email: string, password: string) {
     throw new Error(data.error_description || "Falha no login");
   }
 
-  localStorage.setItem("token", data.access_token);
+  sessionStorage.setItem("token", data.access_token);
   return data;
 }
 
-export async function getUserInfo() {
-  try {
-    const response = await api.get("/auth/info");
-    return response.data;
-  } catch (error: any) {
-    // Você pode customizar o tratamento de erro aqui
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      "Falha ao buscar dados do usuário";
-    throw new Error(message);
-  }
+export async function getUserInfo(): Promise<User> {
+  const response = await api.get<User>("/auth/info");
+  const data = response.data;
+  return data;
 }
 
 export async function register(data: UserRegisterData) {

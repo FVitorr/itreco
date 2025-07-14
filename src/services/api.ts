@@ -4,19 +4,27 @@ const api = axios.create({
   baseURL: "http://localhost:8080",
 });
 
-// Middleware de requisição: insere o token
+// ✅ Interceptor de requisição: adiciona o token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-
-    console.log("Interceptando token:", token);
+    const token = sessionStorage.getItem("token");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
-    // Se der erro antes da requisição ser feita
+    return Promise.reject(error);
+  }
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
     return Promise.reject(error);
   }
 );
