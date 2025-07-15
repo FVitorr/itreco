@@ -5,7 +5,11 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { Product } from "../../dtos/product.dto";
 
-export default function CardProducts(product: Product) {
+interface CardProductsProps {
+  product: Product;
+}
+
+export default function CardProducts({ product }: CardProductsProps) {
   return (
     <>
       <Card
@@ -17,15 +21,17 @@ export default function CardProducts(product: Product) {
           flexDirection: "column",
           alignItems: "center",
           border: "1px solid red",
+          width: 250, // largura fixa
+          p: 2,
         }}
       >
-        <Box width={200} height={150} mt={4}>
+        <Box width="100%" height={150} mt={4}>
           <img
-            src={product.imageUrl || require("../img/icon/photo.png")}
+            src={product.imageUrl || require("../../img/icon/photo.png")}
             alt={product.name}
-            width={200}
-            height={150}
             style={{
+              width: "100%",
+              height: "100%",
               borderTopLeftRadius: 8,
               borderTopRightRadius: 8,
               objectFit: "contain",
@@ -33,7 +39,7 @@ export default function CardProducts(product: Product) {
           />
         </Box>
 
-        <CardContent sx={{ flexGrow: 1 }}>
+        <CardContent sx={{ flexGrow: 1, width: "100%" }}>
           <Typography variant="subtitle1" fontWeight="600" noWrap>
             {product.name}
           </Typography>
@@ -52,10 +58,10 @@ export default function CardProducts(product: Product) {
           <Box
             sx={{
               mt: 2,
+              width: "100%", // agora ocupa toda largura do CardContent
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              border: "1px solid red",
             }}
           >
             <Typography variant="h6" color="success.main" fontWeight="bold">

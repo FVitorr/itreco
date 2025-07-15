@@ -8,13 +8,17 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { motion } from "framer-motion";
 
 import { getUserInfo } from "../../services/auth";
 import { User } from "../../dtos/user.dto";
+import { searchProductsOrStores } from "../../services/products.service";
+import { Icon } from "@mui/material";
 
 export default function Header() {
   const [userInfo, setUserInfo] = useState<User | null>(null);
   const navigate = useNavigate();
+  const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -22,13 +26,23 @@ export default function Header() {
 
     async function fetchUser() {
       const user = await getUserInfo();
+      sessionStorage.setItem("user", JSON.stringify(user));
       setUserInfo(user);
     }
 
     fetchUser();
   }, []);
 
-  const mainAddress = userInfo?.addresses?.[0]; // endereço principal vindo da API
+  const search = async (params: string) => {
+    try {
+      const data = await searchProductsOrStores(params);
+      navigate("/allProducts", { state: { results: data } });
+    } catch (err) {
+      console.error("Erro ao buscar:", err);
+    }
+  };
+
+  const mainAddress = userInfo?.addresses?.[0];
 
   return (
     <Box
@@ -43,6 +57,7 @@ export default function Header() {
         bgcolor: "background.paper",
       }}
     >
+      {/* Logo */}
       <Box
         onClick={() => navigate("/public")}
         sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}
@@ -66,6 +81,7 @@ export default function Header() {
         </Typography>
       </Box>
 
+      {/* Endereço */}
       {userInfo && mainAddress && (
         <Box
           sx={{
@@ -83,12 +99,29 @@ export default function Header() {
         </Box>
       )}
 
-      <Box sx={{ flexGrow: 1, maxWidth: 400, mx: 2 }}>
+      {/* Campo de busca + botão */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          maxWidth: 400,
+          mx: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
         <TextField
           placeholder="Buscar produtos ou lojas"
           size="small"
           variant="outlined"
           fullWidth
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              search(searchValue);
+            }
+          }}
           InputProps={{
             startAdornment: (
               <Box sx={{ display: "flex", alignItems: "center", mr: 1 }}>
@@ -97,16 +130,37 @@ export default function Header() {
             ),
           }}
         />
+
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          style={{ height: "40px", width: "20px" }}
+        >
+          <Button
+            variant="contained"
+            color="error"
+            fullWidth
+            size="small"
+            sx={{ height: "100%" }}
+            onClick={() => search(searchValue)}
+          >
+            <SearchIcon />
+          </Button>
+        </motion.div>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 1 }}>
-        {!userInfo && (
+      {/* Botões de login/cadastro/carrinho */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          alignItems: "center",
+          height: "40px",
+        }}
+      >
+        {!userInfo ? (
           <>
-            <Button
-              variant="text"
-              size="small"
-              onClick={() => navigate("/login")}
-            >
+            <Button variant="text" fullWidth onClick={() => navigate("/login")}>
               Entrar
             </Button>
             <Button
@@ -118,14 +172,34 @@ export default function Header() {
               Cadastrar
             </Button>
           </>
+        ) : (
+          <Typography variant="body2" sx={{ alignSelf: "center" }}>
+            Olá, {userInfo.firstName}
+          </Typography>
         )}
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => navigate("/carrinho")}
+
+        <motion.button
+          onClick={() => navigate("/cart")}
+          style={{
+            border: "none",
+            background: "none",
+            cursor: "pointer",
+            height: "40px",
+          }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <ShoppingCartIcon fontSize="small" />
-        </Button>
+          <Button
+            variant="contained"
+            color="error"
+            fullWidth
+            size="small"
+            sx={{ height: "100%" }}
+            onClick={() => navigate("/cart")}
+          >
+            <ShoppingCartIcon />
+          </Button>
+        </motion.button>
       </Box>
     </Box>
   );

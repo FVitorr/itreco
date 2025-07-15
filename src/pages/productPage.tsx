@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -6,78 +6,21 @@ import {
   Button,
   Card,
   CardContent,
-  CardMedia,
-  Grid,
   Select,
   MenuItem,
   Pagination,
 } from "@mui/material";
 import Header from "./componentes/header";
 import Footer from "./componentes/footer";
-
-// Simulação dos dados (pode substituir pela API real)
-const allProducts = [
-  {
-    id: 1,
-    name: "Smartphone Galaxy Pro",
-    category: "Eletrônicos",
-    price: 1299.9,
-    image: "https://m.media-amazon.com/images/I/71KZXGAb5fL._AC_SL1500_.jpg",
-  },
-  {
-    id: 2,
-    name: "Fone Bluetooth Premium",
-    category: "Eletrônicos",
-    price: 299.9,
-    image: "/placeholder.svg",
-  },
-  {
-    id: 3,
-    name: "Smartwatch Fitness",
-    category: "Eletrônicos",
-    price: 599.9,
-    image: "/placeholder.svg",
-  },
-  {
-    id: 4,
-    name: "Tablet 10 polegadas",
-    category: "Eletrônicos",
-    price: 899.9,
-    image: "/placeholder.svg",
-  },
-  {
-    id: 5,
-    name: "Camiseta Premium",
-    category: "Moda",
-    price: 79.9,
-    image: "/placeholder.svg",
-  },
-  {
-    id: 6,
-    name: "Calça Jeans Slim",
-    category: "Moda",
-    price: 149.9,
-    image: "/placeholder.svg",
-  },
-  {
-    id: 7,
-    name: "Tênis Esportivo",
-    category: "Moda",
-    price: 299.9,
-    image: "/placeholder.svg",
-  },
-  {
-    id: 8,
-    name: "Jaqueta Bomber",
-    category: "Moda",
-    price: 199.9,
-    image: "/placeholder.svg",
-  },
-];
+import { useLocation } from "react-router-dom";
+import { Product } from "../dtos/product.dto";
 
 const categories = ["Todas", "Eletrônicos", "Moda"];
 
 export default function AllProducts() {
+  const location = useLocation();
+  const results: Product[] = location.state?.results || [];
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("Todas");
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,24 +28,14 @@ export default function AllProducts() {
 
   const productsPerPage = 4;
 
-  // Filtra produtos conforme busca e categoria
-  const filteredProducts = allProducts.filter((product) => {
-    const matchesCategory =
-      filterCategory === "Todas" || product.category === filterCategory;
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredProducts = results.filter((product) => {});
 
-  // Paginação
   const pageCount = Math.ceil(filteredProducts.length / productsPerPage);
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * productsPerPage,
     currentPage * productsPerPage
   );
 
-  // Adiciona produto ao carrinho simulando clique
   function handleAddToCart(productId: number) {
     if (!cart.includes(productId)) {
       setCart([...cart, productId]);
@@ -124,9 +57,8 @@ export default function AllProducts() {
           Produtos
         </Typography>
 
-        {/* Filtros e pesquisa */}
+        {/* Filtros */}
         <Box
-          component="section"
           sx={{
             display: "flex",
             gap: 2,
@@ -165,7 +97,7 @@ export default function AllProducts() {
         </Box>
 
         {/* Lista de produtos */}
-        <Box component="section" sx={{ py: 8 }}>
+        <Box sx={{ py: 8 }}>
           <Box sx={{ maxWidth: 1200, mx: "auto", px: 2 }}>
             <Box
               sx={{
@@ -195,7 +127,9 @@ export default function AllProducts() {
                   >
                     <Box width={200} height={150} mt={4}>
                       <img
-                        src={product.image || require("../img/icon/photo.png")}
+                        src={
+                          product.imageUrl || require("../img/icon/photo.png")
+                        }
                         alt={product.name}
                         width={200}
                         height={150}
@@ -221,7 +155,7 @@ export default function AllProducts() {
                           overflow: "hidden",
                         }}
                       >
-                        {product.name}
+                        {product.description}
                       </Typography>
                       <Box
                         sx={{
@@ -229,7 +163,7 @@ export default function AllProducts() {
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
-                          border: "1px solid red",
+                          width: "100%",
                         }}
                       >
                         <Typography
@@ -239,7 +173,12 @@ export default function AllProducts() {
                         >
                           R$ {product.price.toFixed(2).replace(".", ",")}
                         </Typography>
-                        <Button variant="contained" size="small" color="error">
+                        <Button
+                          variant="contained"
+                          size="small"
+                          color="error"
+                          onClick={() => handleAddToCart(product.id)}
+                        >
                           Adicionar
                         </Button>
                       </Box>
@@ -269,6 +208,7 @@ export default function AllProducts() {
           </Box>
         )}
       </Box>
+
       <Footer />
     </Box>
   );
