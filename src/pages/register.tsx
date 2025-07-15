@@ -25,7 +25,7 @@ import {
   ArrowBack,
   LocalShipping,
 } from "@mui/icons-material";
-import { register, login } from "../services/auth";
+import { register, login } from "../services/auth.service";
 import { useNavigate } from "react-router-dom";
 
 export default function RegisterPage() {

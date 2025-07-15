@@ -30,8 +30,10 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/allProducts" element={<AllProducts />} />
+        <Route path="/carrinho" element={<CartPage />} />
 
-        {/* Rotas privadas por role */}
+
+          {/* Rotas privadas por role */}
         <Route
           path="/cart"
           element={

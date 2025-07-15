@@ -23,7 +23,7 @@ import {
   LocalShipping,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { login } from "../services/auth";
+import { login } from "../services/auth.service";
 
 export default function LoginPage() {
   const navigate = useNavigate();

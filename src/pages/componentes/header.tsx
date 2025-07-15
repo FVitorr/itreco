@@ -10,7 +10,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { motion } from "framer-motion";
 
-import { getUserInfo } from "../../services/auth";
+import { getUserInfo } from "../../services/auth.service";
 import { User } from "../../dtos/user.dto";
 import { searchProductsOrStores } from "../../services/products.service";
 import { Icon } from "@mui/material";
@@ -59,7 +59,7 @@ export default function Header() {
     >
       {/* Logo */}
       <Box
-        onClick={() => navigate("/public")}
+        onClick={() => navigate("/home")}
         sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}
       >
         <Box

@@ -1,215 +1,166 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Card,
-  CardContent,
-  Select,
-  MenuItem,
-  Pagination,
+    Box,
+    Typography,
+    TextField,
+    Select,
+    MenuItem,
+    Pagination,
+    CircularProgress,
 } from "@mui/material";
 import Header from "./componentes/header";
 import Footer from "./componentes/footer";
-import { useLocation } from "react-router-dom";
 import { Product } from "../dtos/product.dto";
-
-const categories = ["Todas", "Eletrônicos", "Moda"];
+import CardProducts from "./componentes/cardProducts";
+import { Store } from "../dtos/store.dto";
+import { getProducts } from "../services/products.service";
+import { getCategory } from "../services/category.service"; // importando getCategory
 
 export default function AllProducts() {
-  const location = useLocation();
-  const results: Product[] = location.state?.results || [];
+    const [categories, setCategories] = useState<{ id: number; name: string }[]>([
+        { id: 0, name: "Todas" }, // mantém opção Todas sempre disponível
+    ]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterCategoryId, setFilterCategoryId] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [totalPages, setTotalPages] = useState(1);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("Todas");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [cart, setCart] = useState<number[]>([]);
+    const productsPerPage = 8;
 
-  const productsPerPage = 4;
+    // Busca categorias do backend uma vez só
+    useEffect(() => {
+        async function fetchCategories() {
+            try {
+                const cats = await getCategory();
+                // Adiciona "Todas" + categorias do backend
+                setCategories([{ id: 0, name: "Todas" }, ...cats]);
+            } catch (error) {
+                console.error("Erro ao buscar categorias:", error);
+            }
+        }
+        fetchCategories();
+    }, []);
 
-  const filteredProducts = results.filter((product) => {});
+    // Busca produtos de acordo com filtros e paginação
+    useEffect(() => {
+        async function fetchProducts() {
+            setLoading(true);
+            try {
+                const params = {
+                    page: currentPage,
+                    limit: productsPerPage,
+                    name: searchTerm || undefined,
+                    categoryId: filterCategoryId !== 0 ? filterCategoryId : undefined,
+                };
 
-  const pageCount = Math.ceil(filteredProducts.length / productsPerPage);
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * productsPerPage,
-    currentPage * productsPerPage
-  );
+                const data = await getProducts(params);
 
-  function handleAddToCart(productId: number) {
-    if (!cart.includes(productId)) {
-      setCart([...cart, productId]);
-      alert("Produto adicionado ao carrinho!");
-    } else {
-      alert("Produto já está no carrinho.");
-    }
-  }
+                setProducts(data.items);
+                setTotalPages(data.totalPages);
+            } catch (error) {
+                console.error("Erro ao buscar produtos:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
 
-  return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
-      <Header />
+        fetchProducts();
+    }, [searchTerm, filterCategoryId, currentPage]);
 
-      <Box
-        component="section"
-        sx={{ maxWidth: 1200, mx: "auto", px: 2, mt: 2, mb: 2 }}
-      >
-        <Typography variant="h4" mb={4}>
-          Produtos
-        </Typography>
+    return (
+        <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
+            <Header />
 
-        {/* Filtros */}
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            mb: 4,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          <TextField
-            label="Buscar"
-            variant="outlined"
-            size="small"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            sx={{ flex: 1, minWidth: 200 }}
-          />
+            <Box component="section" sx={{ maxWidth: 1200, mx: "auto", px: 2, mt: 2, mb: 2 }}>
+                <Typography variant="h4" mb={4}>
+                    Produtos
+                </Typography>
 
-          <Select
-            value={filterCategory}
-            onChange={(e) => {
-              setFilterCategory(e.target.value);
-              setCurrentPage(1);
-            }}
-            size="small"
-            sx={{ minWidth: 150 }}
-          >
-            {categories.map((cat) => (
-              <MenuItem key={cat} value={cat}>
-                {cat}
-              </MenuItem>
-            ))}
-          </Select>
-        </Box>
-
-        {/* Lista de produtos */}
-        <Box sx={{ py: 8 }}>
-          <Box sx={{ maxWidth: 1200, mx: "auto", px: 2 }}>
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  md: "repeat(2, 1fr)",
-                  lg: "repeat(4, 1fr)",
-                },
-                gap: 3,
-              }}
-            >
-              {paginatedProducts.length === 0 ? (
-                <Typography>Nenhum produto encontrado.</Typography>
-              ) : (
-                paginatedProducts.map((product) => (
-                  <Card
-                    key={product.id}
+                {/* Filtros */}
+                <Box
                     sx={{
-                      cursor: "pointer",
-                      "&:hover": { boxShadow: 6 },
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      border: "1px solid red",
+                        display: "flex",
+                        gap: 2,
+                        mb: 4,
+                        flexWrap: "wrap",
+                        alignItems: "center",
                     }}
-                  >
-                    <Box width={200} height={150} mt={4}>
-                      <img
-                        src={
-                          product.imageUrl || require("../img/icon/photo.png")
-                        }
-                        alt={product.name}
-                        width={200}
-                        height={150}
-                        style={{
-                          borderTopLeftRadius: 8,
-                          borderTopRightRadius: 8,
-                          objectFit: "contain",
+                >
+                    <TextField
+                        label="Buscar"
+                        variant="outlined"
+                        size="small"
+                        value={searchTerm}
+                        onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(1);
                         }}
-                      />
+                        sx={{ flex: 1, minWidth: 200 }}
+                    />
+
+                    <Select
+                        value={filterCategoryId}
+                        onChange={(e) => {
+                            setFilterCategoryId(Number(e.target.value));
+                            setCurrentPage(1);
+                        }}
+                        size="small"
+                        sx={{ minWidth: 150 }}
+                    >
+                        {categories.map((cat) => (
+                            <MenuItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </Box>
+
+                {/* Lista de produtos */}
+                <Box sx={{ py: 8 }}>
+                    {loading ? (
+                        <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : products.length === 0 ? (
+                        <Typography>Nenhum produto encontrado.</Typography>
+                    ) : (
+                        <Box
+                            sx={{
+                                display: "grid",
+                                gridTemplateColumns: {
+                                    xs: "1fr",
+                                    md: "repeat(2, 1fr)",
+                                    lg: "repeat(4, 1fr)",
+                                },
+                                gap: 3,
+                            }}
+                        >
+                            {products.map((product) => (
+                                <CardProducts
+                                    product={product}
+                                    store={product.store as Store} // se o produto tem store embutida
+                                />
+                            ))}
+                        </Box>
+                    )}
+                </Box>
+
+                {/* Paginação */}
+                {totalPages > 1 && (
+                    <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+                        <Pagination
+                            count={totalPages}
+                            page={currentPage}
+                            onChange={(_, page) => setCurrentPage(page)}
+                            color="primary"
+                        />
                     </Box>
-
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="subtitle1" fontWeight="600" noWrap>
-                        {product.name}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {product.description}
-                      </Typography>
-                      <Box
-                        sx={{
-                          mt: 2,
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          width: "100%",
-                        }}
-                      >
-                        <Typography
-                          variant="h6"
-                          color="success.main"
-                          fontWeight="bold"
-                        >
-                          R$ {product.price.toFixed(2).replace(".", ",")}
-                        </Typography>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          color="error"
-                          onClick={() => handleAddToCart(product.id)}
-                        >
-                          Adicionar
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+                )}
             </Box>
-          </Box>
+
+            <Footer />
         </Box>
-
-        {/* Paginação */}
-        {pageCount > 1 && (
-          <Box
-            sx={{
-              mt: 4,
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
-            <Pagination
-              count={pageCount}
-              page={currentPage}
-              onChange={(_, page) => setCurrentPage(page)}
-              color="primary"
-            />
-          </Box>
-        )}
-      </Box>
-
-      <Footer />
-    </Box>
-  );
+    );
 }

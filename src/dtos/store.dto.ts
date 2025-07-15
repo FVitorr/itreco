@@ -10,3 +10,5 @@ export interface Store {
   products: Product[];
   category: Category;
 }
+
+//      deliveryFee: "R$ 9,99",

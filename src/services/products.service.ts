@@ -16,10 +16,10 @@ export async function getProducts(
 }
 
 export async function searchProductsOrStores(
-  params: string // também corrige o tipo: string (com "s" minúsculo)
+  params: string
 ): Promise<PaginatedResponse<Product>> {
   const response = await api.get<PaginatedResponse<Product>>("/search", {
-    params: { q: params }, // geralmente usa `q` como chave de busca
+    params: { q: params },
   });
   return response.data;
 }
