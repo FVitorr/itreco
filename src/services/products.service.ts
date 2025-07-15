@@ -8,26 +8,30 @@ import api from "./api";
 
 export async function getProducts(
   params: GetProductsParam = {}
-): Promise<PaginatedResponse<ProductList>> {
-  const { categoryId, name, page, limit } = params;
+): Promise<PaginatedResponse<Product>> {
+  const {
+    categoryId,
+    name,
+    page = 0,
+    size = 10,
+  } = params;
 
-  if (!categoryId) {
-    throw new Error("categoryId é obrigatório para buscar produtos.");
-  }
+  const queryParams: Record<string, any> = {
+    page,
+    size,
+  };
 
-  const response = await api.get<PaginatedResponse<ProductList>>(
-    `/product/category/${categoryId}`,
-    {
-      params: {
-        name: name || "",
-        page: page ?? 0,
-        size: limit ?? 10,
-      },
-    }
+  if (categoryId) queryParams.categoryId = categoryId;
+  if (name) queryParams.name = name;
+
+  const response = await api.get<PaginatedResponse<Product>>(
+    `/product/category`, 
+    { params: queryParams }
   );
 
   return response.data;
 }
+
 
 export async function searchProductsOrStores(
   params: string

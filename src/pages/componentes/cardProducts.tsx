@@ -29,10 +29,12 @@ export default function CardProducts({ product }: CardProductsProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
+        flexDirection: "column",
         px: 2,
         py: 1,
         mb: 2,
         boxShadow: 1,
+        width:"300px"
       }}
     >
       {/* Imagem */}
@@ -67,26 +69,26 @@ export default function CardProducts({ product }: CardProductsProps) {
         >
           {product.description}
         </Typography>
-        <Typography
-          variant="body1"
-          color="success.main"
-          fontWeight="bold"
-          mt={1}
-        >
-          R$ {product.price.toFixed(2).replace(".", ",")}
-        </Typography>
       </Box>
-
-      {/* Botão */}
-      <Button
-        variant="contained"
-        size="small"
-        color="error"
-        onClick={handleAddToRedux}
-        sx={{ ml: 2, minWidth: 100 }}
-      >
-        Adicionar
-      </Button>
+      <Box sx={{display:"flex", alignItems:"center", justifyContent:"center"}}>
+          <Typography
+            variant="body1"
+            color="success.main"
+            fontWeight="bold"
+            mt={1}
+          >
+            R$ {product.price.toFixed(2).replace(".", ",")}
+          </Typography>
+        <Button
+          variant="contained"
+          size="small"
+          color="error"
+          onClick={handleAddToRedux}
+          sx={{ ml: 2, minWidth: 100 }}
+        >
+          Adicionar
+        </Button>
+      </Box>
     </Card>
   );
 }

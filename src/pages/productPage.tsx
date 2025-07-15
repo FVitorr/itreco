@@ -20,9 +20,9 @@ import { useLocation } from "react-router-dom";
 
 export default function AllProducts() {
   const location = useLocation();
-  const categoryIdFromState = location?.state?.categoryId ?? 0;
+  const categoryIdFromState = location?.state?.categoryId ?? null;
 
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([
+  const [categories, setCategories] = useState<{ id: any; name: string }[]>([
     { id: 0, name: "Todas" },
   ]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +33,7 @@ export default function AllProducts() {
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
 
-  const productsPerPage = 8;
+  const productsPerPage = 10;
 
   // Carregar categorias uma vez
   useEffect(() => {
@@ -56,21 +56,23 @@ export default function AllProducts() {
   }, [categoryIdFromState]);
 
   // Buscar produtos sempre que filtros mudarem
+// ...
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true);
       try {
         const params = {
-          page: currentPage,
-          limit: productsPerPage,
+          page: currentPage - 1,
+          size: productsPerPage, 
           name: searchTerm || undefined,
           categoryId: filterCategoryId !== 0 ? filterCategoryId : undefined,
         };
-
         const data = await getProducts(params);
-        if (data && Array.isArray(data.items)) {
-          setProducts(data.items);
+        if (data && Array.isArray(data.content)) {
+          setProducts(data.content);
           setTotalPages(data.totalPages ?? 1);
+
+          console.log(data);
         } else {
           setProducts([]);
           setTotalPages(1);
@@ -84,6 +86,8 @@ export default function AllProducts() {
 
     fetchProducts();
   }, [searchTerm, filterCategoryId, currentPage]);
+  // ...
+
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
