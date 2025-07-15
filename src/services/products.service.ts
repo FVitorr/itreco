@@ -7,6 +7,7 @@ import api from "./api";
 
 export async function getProducts(
   params: GetProductsParam = {}
+
 ): Promise<PaginatedResponse<Product>> {
   const response = await api.get<PaginatedResponse<Product>>("/products", {
     params,
