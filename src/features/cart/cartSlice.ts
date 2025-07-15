@@ -1,42 +1,31 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { Product } from '../../dtos/product.dto'
-import { Store } from '../../dtos/store.dto'
-
-interface CartStore {
-    store: Store
-    products: Product[]
-}
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Product } from "../../dtos/product.dto";
 
 interface CartState {
-    stores: CartStore[]
+  products: Product[];
 }
 
 const initialState: CartState = {
-    stores: [],
-}
+  products: [],
+};
 
 const cartSlice = createSlice({
-    name: 'cart',
-    initialState,
-    reducers: {
-        addProductToCart: (state, action: PayloadAction<{ store: Store; product: Product }>) => {
-            const { store, product } = action.payload
+  name: "cart",
+  initialState,
+  reducers: {
+    addProductToCart: (state, action: PayloadAction<{ product: Product }>) => {
+      const { product } = action.payload;
+      const exists = state.products.find((p) => p.id === product.id);
 
-            let cartStore = state.stores.find(s => s.store.id === store.id)
-            if (!cartStore) {
-                state.stores.push({ store, products: [product] })
-            } else {
-                const exists = cartStore.products.find(p => p.id === product.id)
-                if (!exists) {
-                    cartStore.products.push(product)
-                }
-            }
-        },
-        clearCart: (state) => {
-            state.stores = []
-        },
+      if (!exists) {
+        state.products.push(product);
+      }
     },
-})
+    clearCart: (state) => {
+      state.products = [];
+    },
+  },
+});
 
-export const { addProductToCart, clearCart } = cartSlice.actions
-export default cartSlice.reducer
+export const { addProductToCart, clearCart } = cartSlice.actions;
+export default cartSlice.reducer;
