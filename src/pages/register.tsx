@@ -133,6 +133,15 @@ export default function RegisterPage() {
 
     try {
       // Adaptar para enviar endereço, se sua API suportar
+      console.log({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        addresses: [ address ],
+      });
+
+
       const resp = await register({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -140,6 +149,7 @@ export default function RegisterPage() {
         password: formData.password,
         addresses: [ address ],
       });
+
 
       if (!resp || !resp.id) {
         throw new Error("Erro ao criar conta. Tente novamente.");

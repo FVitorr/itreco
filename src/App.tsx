@@ -34,7 +34,7 @@ function App() {
         <Route
           path="/cart"
           element={
-            <RequireRole allowedRoles={["ROLE_USER", "ROLE_ADMIN"]}>
+            <RequireRole allowedRoles={["ROLE_CLIENT", "ROLE_ADMIN"]}>
               <CartPage />
             </RequireRole>
           }
@@ -43,7 +43,7 @@ function App() {
         <Route
           path="/products"
           element={
-            <RequireRole allowedRoles={["ROLE_ADMIN", "ROLE_OPERATOR"]}>
+            <RequireRole allowedRoles={["ROLE_ADMIN", "ROLE_SELLER"]}>
               <ProductsPage />
             </RequireRole>
           }
