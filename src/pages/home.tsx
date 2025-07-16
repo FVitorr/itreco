@@ -221,17 +221,31 @@ export default function HomePage() {
                 </Card>
 
                 {/* Produtos */}
-                <Box sx={{ overflowX: "auto", whiteSpace: "nowrap", p: 2 }}>
+                <Box sx={{ px: 2 }}>
                   <Box
                     sx={{
-                      display: "inline-grid",
-                      gridAutoFlow: "column",
-                      gridAutoColumns: "min-content",
+                      display: "flex",
+                      overflowX: "auto",
                       gap: 2,
+                      pb: 1,
+                      scrollSnapType: "x mandatory",
+                      justifyContent: "flex-start",
+                      "&::-webkit-scrollbar": {
+                        display: "none",
+                      },
                     }}
                   >
-                    {store.products.map((product: Product) => (
-                      <CardProducts product={product} />
+                    {store.products.map((product: Product, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          minWidth: 250,
+                          scrollSnapAlign: "start",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <CardProducts product={product} />
+                      </Box>
                     ))}
                   </Box>
                 </Box>

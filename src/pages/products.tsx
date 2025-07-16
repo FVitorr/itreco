@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -8,47 +8,47 @@ import {
   IconButton,
   Grid,
   Modal,
-  TextField
+  TextField,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import Header from "./componentes/header";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-}
-
-const initialProducts: Product[] = [
-  {
-    id: 1,
-    name: "Smartphone Galaxy Pro",
-    description: "Smartphone com tela de 6.5', 128GB, câmera tripla e bateria de longa duração",
-    price: 1299.9,
-    image: "https://static.vecteezy.com/system/resources/previews/047/300/155/non_2x/add-image-icon-symbol-design-illustration-vector.jpg",
-  },
-  {
-    id: 2,
-    name: "Fone Bluetooth Premium",
-    description: "Fone de ouvido sem fio com cancelamento de ruído e 30h de bateria",
-    price: 299.9,
-    image: "/placeholder.svg?height=150&width=200",
-  },
-];
+import { Product } from "../dtos/product.dto";
+import { getProductStores } from "../services/products.service";
 
 export default function ProductsCrudPage() {
+  const initialProducts: Product[] = [];
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: '', description: '', price: '', image: '' });
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    image: "",
+  });
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const response = await getProductStores();
+      setProducts(response.content || []);
+    };
+    fetchProducts();
+  }, []);
 
   const handleOpenModal = (product?: Product) => {
     setEditingProduct(product || null);
-    setForm(product ? { ...product, price: product.price.toString() } : { name: '', description: '', price: '', image: '' });
+    setForm(
+      product
+        ? {
+            name: product.name,
+            description: product.description,
+            price: product.price.toString(),
+            image: product.imageUrl || "",
+          }
+        : { name: "", description: "", price: "", image: "" }
+    );
     setModalOpen(true);
   };
 
@@ -63,7 +63,7 @@ export default function ProductsCrudPage() {
       name: form.name,
       description: form.description,
       price: parseFloat(form.price),
-      image: form.image,
+      imageUrl: form.image,
     };
 
     setProducts((prev) => {
@@ -95,7 +95,11 @@ export default function ProductsCrudPage() {
         <Typography variant="h4" fontWeight="bold" mb={3}>
           Produtos
         </Typography>
-        <Button variant="contained" onClick={() => handleOpenModal()} sx={{ mb: 4 }}>
+        <Button
+          variant="contained"
+          onClick={() => handleOpenModal()}
+          sx={{ mb: 4 }}
+        >
           Adicionar Produto
         </Button>
 
@@ -116,22 +120,33 @@ export default function ProductsCrudPage() {
                   <DeleteIcon />
                 </IconButton>
               </Box>
-              <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <CardContent
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
                 <img
-                  src={product.image}
+                  src={product.imageUrl}
                   alt={product.name}
-                  style={{ width: "100%", height: 150, objectFit: "contain", borderRadius: 8 }}
+                  style={{
+                    width: "100%",
+                    height: 150,
+                    objectFit: "contain",
+                    borderRadius: 8,
+                  }}
                 />
                 <Box>
-                    <Typography variant="h6" mt={2}>
+                  <Typography variant="h6" mt={2}>
                     {product.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
                     {product.description}
-                    </Typography>
-                    <Typography variant="subtitle1" fontWeight="bold" mt={1}>
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight="bold" mt={1}>
                     R$ {product.price.toFixed(2)}
-                    </Typography>
+                  </Typography>
                 </Box>
               </CardContent>
             </Card>
@@ -166,7 +181,9 @@ export default function ProductsCrudPage() {
               label="Descrição"
               fullWidth
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
               sx={{ mb: 2 }}
             />
             <TextField
@@ -191,7 +208,10 @@ export default function ProductsCrudPage() {
         </Modal>
       </Box>
 
-      <Box component="footer" sx={{ bgcolor: "grey.900", color: "grey.300", py: 6 }}>
+      <Box
+        component="footer"
+        sx={{ bgcolor: "grey.900", color: "grey.300", py: 6 }}
+      >
         <Box sx={{ maxWidth: 1200, mx: "auto", px: 2 }}>
           <Box
             sx={{
@@ -246,8 +266,12 @@ export default function ProductsCrudPage() {
                         textDecoration: "none",
                         cursor: "pointer",
                       }}
-                      onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "grey.400")}
+                      onMouseOver={(e) =>
+                        (e.currentTarget.style.color = "#fff")
+                      }
+                      onMouseOut={(e) =>
+                        (e.currentTarget.style.color = "grey.400")
+                      }
                     >
                       {text}
                     </a>
@@ -265,22 +289,28 @@ export default function ProductsCrudPage() {
                 Suporte
               </Typography>
               <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0 }}>
-                {["Central de Ajuda", "Contato", "Termos de Uso"].map((text) => (
-                  <li key={text}>
-                    <a
-                      href="#"
-                      style={{
-                        color: "grey.400",
-                        textDecoration: "none",
-                        cursor: "pointer",
-                      }}
-                      onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "grey.400")}
-                    >
-                      {text}
-                    </a>
-                  </li>
-                ))}
+                {["Central de Ajuda", "Contato", "Termos de Uso"].map(
+                  (text) => (
+                    <li key={text}>
+                      <a
+                        href="#"
+                        style={{
+                          color: "grey.400",
+                          textDecoration: "none",
+                          cursor: "pointer",
+                        }}
+                        onMouseOver={(e) =>
+                          (e.currentTarget.style.color = "#fff")
+                        }
+                        onMouseOut={(e) =>
+                          (e.currentTarget.style.color = "grey.400")
+                        }
+                      >
+                        {text}
+                      </a>
+                    </li>
+                  )
+                )}
               </Box>
             </Box>
             <Box>
@@ -302,8 +332,12 @@ export default function ProductsCrudPage() {
                         textDecoration: "none",
                         cursor: "pointer",
                       }}
-                      onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "grey.400")}
+                      onMouseOver={(e) =>
+                        (e.currentTarget.style.color = "#fff")
+                      }
+                      onMouseOut={(e) =>
+                        (e.currentTarget.style.color = "grey.400")
+                      }
                     >
                       {text}
                     </a>

@@ -9,12 +9,7 @@ import api from "./api";
 export async function getProducts(
   params: GetProductsParam = {}
 ): Promise<PaginatedResponse<Product>> {
-  const {
-    categoryId,
-    name,
-    page = 0,
-    size = 10,
-  } = params;
+  const { categoryId, name, page = 0, size = 10 } = params;
 
   const queryParams: Record<string, any> = {
     page,
@@ -25,19 +20,26 @@ export async function getProducts(
   if (name) queryParams.name = name;
 
   const response = await api.get<PaginatedResponse<Product>>(
-    `/product/category`, 
+    `/product/category`,
     { params: queryParams }
   );
 
   return response.data;
 }
 
-
 export async function searchProductsOrStores(
   params: string
 ): Promise<PaginatedResponse<Product>> {
-  const response = await api.get<PaginatedResponse<Product>>("/search", {
-    params: { q: params },
-  });
+  const response = await api.get<PaginatedResponse<Product>>(
+    "/product/search",
+    {
+      params: { name: params },
+    }
+  );
+  return response.data;
+}
+
+export async function getProductStores(): Promise<PaginatedResponse<Product>> {
+  const response = await api.get<PaginatedResponse<Product>>("/product/stores");
   return response.data;
 }

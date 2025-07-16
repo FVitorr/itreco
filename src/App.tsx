@@ -22,18 +22,15 @@ function App() {
     <Router>
       <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
-        {/* Rota padrão redireciona para login */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* Rota padrão redireciona para home */}
+        <Route path="/" element={<Navigate to="/home" />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/allProducts" element={<AllProducts />} />
-        <Route path="/carrinho" element={<CartPage />} />
 
-
-          {/* Rotas privadas por role */}
         <Route
           path="/cart"
           element={

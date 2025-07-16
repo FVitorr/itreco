@@ -4,16 +4,18 @@ import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { motion } from "framer-motion";
 
-import { getUserInfo } from "../../services/auth.service";
+import { getUserInfo, hasRole } from "../../services/auth.service";
 import { User } from "../../dtos/user.dto";
 import { searchProductsOrStores } from "../../services/products.service";
 import { Icon } from "@mui/material";
+import { MotionButton } from "./button";
 
 export default function Header() {
   const [userInfo, setUserInfo] = useState<User | null>(null);
@@ -26,6 +28,7 @@ export default function Header() {
 
     async function fetchUser() {
       const user = await getUserInfo();
+      console.log("User Info:", user);
       sessionStorage.setItem("user", JSON.stringify(user));
       setUserInfo(user);
     }
@@ -131,22 +134,16 @@ export default function Header() {
           }}
         />
 
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          style={{ height: "40px", width: "20px" }}
+        <MotionButton
+          variant="contained"
+          color="error"
+          fullWidth
+          size="small"
+          sx={{ height: "100%" }}
+          onClick={() => search(searchValue)}
         >
-          <Button
-            variant="contained"
-            color="error"
-            fullWidth
-            size="small"
-            sx={{ height: "100%" }}
-            onClick={() => search(searchValue)}
-          >
-            <SearchIcon />
-          </Button>
-        </motion.div>
+          <SearchIcon />
+        </MotionButton>
       </Box>
 
       {/* Botões de login/cadastro/carrinho */}
@@ -160,36 +157,34 @@ export default function Header() {
       >
         {!userInfo ? (
           <>
-            <Button variant="text" fullWidth onClick={() => navigate("/login")}>
+            <MotionButton
+              variant="text"
+              fullWidth
+              onClick={() => navigate("/login")}
+            >
               Entrar
-            </Button>
-            <Button
+            </MotionButton>
+            <MotionButton
               variant="contained"
+              fullWidth
               size="small"
+              sx={{ height: "100%" }}
               color="error"
               onClick={() => navigate("/cadastrar")}
             >
               Cadastrar
-            </Button>
+            </MotionButton>
           </>
         ) : (
-          <Typography variant="body2" sx={{ alignSelf: "center" }}>
-            Olá, {userInfo.firstName}
-          </Typography>
+          <Box sx={{ mr: 1 }}>
+            <Typography variant="body2" sx={{ alignSelf: "center" }}>
+              Olá, {userInfo.firstName}
+            </Typography>
+          </Box>
         )}
 
-        <motion.button
-          onClick={() => navigate("/cart")}
-          style={{
-            border: "none",
-            background: "none",
-            cursor: "pointer",
-            height: "40px",
-          }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Button
+        {!hasRole(userInfo?.roles, ["ROLE_SELLER", "ROLE_ADMIN"]) ? (
+          <MotionButton
             variant="contained"
             color="error"
             fullWidth
@@ -198,8 +193,32 @@ export default function Header() {
             onClick={() => navigate("/cart")}
           >
             <ShoppingCartIcon />
-          </Button>
-        </motion.button>
+          </MotionButton>
+        ) : (
+          <MotionButton
+            variant="contained"
+            color="error"
+            fullWidth
+            size="small"
+            sx={{ height: "100%" }}
+            onClick={() => navigate("/products")}
+          >
+            <AdminPanelSettingsIcon />
+          </MotionButton>
+        )}
+
+        {hasRole(userInfo?.roles, ["ROLE_ADMIN"]) ? (
+          <MotionButton
+            variant="contained"
+            color="error"
+            fullWidth
+            size="small"
+            sx={{ height: "100%" }}
+            onClick={() => navigate("/cart")}
+          >
+            <ShoppingCartIcon />
+          </MotionButton>
+        ) : null}
       </Box>
     </Box>
   );

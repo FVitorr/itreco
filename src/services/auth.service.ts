@@ -1,5 +1,6 @@
 import api from "./api";
 import { User, UserRegisterData } from "../dtos/user.dto";
+import { Role } from "../dtos/role.dto";
 
 interface RegisterData {
   firstName: string;
@@ -57,4 +58,12 @@ export async function register(data: UserRegisterData) {
 
   const responseData = await response.json();
   return responseData;
+}
+
+export function hasRole(
+  roles: Role[] | undefined,
+  rolesToCheck: string[]
+): boolean {
+  if (!roles) return false;
+  return roles.some((role) => rolesToCheck.includes(role.authority));
 }
