@@ -1,21 +1,17 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { motion } from "framer-motion";
 
-import { getUserInfo, hasRole } from "../../services/auth.service";
-import { User } from "../../dtos/user.dto";
-import { searchProductsOrStores } from "../../services/products.service";
-import { Icon } from "@mui/material";
-import { MotionButton } from "./button";
+import {getUserInfo, hasRole} from "../../services/auth.service";
+import {User} from "../../dtos/user.dto";
+import {MotionButton} from "./button";
 
 export default function Header() {
   const [userInfo, setUserInfo] = useState<User | null>(null);

@@ -1,15 +1,4 @@
-import SearchIcon from "@mui/icons-material/Search";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import LocationOnIcon from "@mui/icons-material/LocationOn"; // para MapPin
-import StarIcon from "@mui/icons-material/Star";
-import AccessTimeIcon from "@mui/icons-material/AccessTime"; // para Clock
 import LocalShippingIcon from "@mui/icons-material/LocalShipping"; // para Truck
-
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 

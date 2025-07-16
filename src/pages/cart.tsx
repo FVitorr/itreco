@@ -1,16 +1,9 @@
-import { useSelector } from "react-redux";
-import { RootState } from "../app/store";
-import { useState, useMemo } from "react";
-import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Checkbox,
-  Button,
-} from "@mui/material";
+import {useSelector} from "react-redux";
+import {RootState} from "../app/store";
+import {useMemo, useState} from "react";
+import {Box, Button, Card, CardContent, Checkbox, Typography,} from "@mui/material";
 import Header from "./componentes/header";
-import { Product } from "../dtos/product.dto";
+import {Product} from "../dtos/product.dto";
 
 export default function CartPage() {
   const products = useSelector((state: RootState) => state.cart.products);

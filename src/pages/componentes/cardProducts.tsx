@@ -1,15 +1,14 @@
-import { motion } from "framer-motion";
+import {motion} from "framer-motion";
 import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { Product } from "../../dtos/product.dto";
+import {Product} from "../../dtos/product.dto";
 
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../../app/store";
-import { addProductToCart } from "../../features/cart/cartSlice";
-import { toast } from "react-toastify";
-import { MotionButton } from "./button";
+import {useDispatch} from "react-redux";
+import {AppDispatch} from "../../app/store";
+import {addProductToCart} from "../../features/cart/cartSlice";
+import {toast} from "react-toastify";
+import {MotionButton} from "./button";
 
 interface CardProductsProps {
   product: Product;

@@ -1,32 +1,25 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import {useState} from "react";
 import {
+  Alert,
   Box,
+  Button,
   Card,
   CardContent,
-  TextField,
-  Button,
-  Typography,
+  Checkbox,
   Container,
   Divider,
+  FormControlLabel,
   IconButton,
   InputAdornment,
-  Alert,
-  Checkbox,
-  FormControlLabel,
+  TextField,
+  Typography,
 } from "@mui/material";
-import {
-  Visibility,
-  VisibilityOff,
-  Google,
-  Facebook,
-  ArrowBack,
-  LocalShipping,
-} from "@mui/icons-material";
-import { register, login } from "../services/auth.service";
-import { useNavigate } from "react-router-dom";
+import {ArrowBack, Facebook, Google, LocalShipping, Visibility, VisibilityOff,} from "@mui/icons-material";
+import {login, register} from "../services/auth.service";
+import {useNavigate} from "react-router-dom";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);

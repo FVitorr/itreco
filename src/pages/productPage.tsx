@@ -1,20 +1,12 @@
-import { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  Select,
-  MenuItem,
-  Pagination,
-  CircularProgress,
-} from "@mui/material";
+import {useEffect, useState} from "react";
+import {Box, CircularProgress, MenuItem, Pagination, Select, TextField, Typography,} from "@mui/material";
 import Header from "./componentes/header";
 import Footer from "./componentes/footer";
-import { Product } from "../dtos/product.dto";
+import {Product} from "../dtos/product.dto";
 import CardProducts from "./componentes/cardProducts";
-import { getProducts } from "../services/products.service";
-import { getCategory } from "../services/category.service";
-import { useLocation } from "react-router-dom";
+import {getProducts} from "../services/products.service";
+import {getCategory} from "../services/category.service";
+import {useLocation} from "react-router-dom";
 
 export default function AllProducts() {
   const location = useLocation();

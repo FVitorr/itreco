@@ -1,8 +1,6 @@
-import { Product } from "../dtos/product.dto";
-import { ProductList } from "../dtos/productList.dto";
-import { Store } from "../dtos/store.dto";
-import { GetProductsParam } from "../interface/getProductsParam.interface";
-import { PaginatedResponse } from "../interface/paginate.interface";
+import {Product} from "../dtos/product.dto";
+import {GetProductsParam} from "../interface/getProductsParam.interface";
+import {PaginatedResponse} from "../interface/paginate.interface";
 
 import api from "./api";
 
@@ -42,4 +40,19 @@ export async function searchProductsOrStores(
 export async function getProductStores(): Promise<PaginatedResponse<Product>> {
   const response = await api.get<PaginatedResponse<Product>>("/product/store");
   return response.data;
+}
+
+export async function save(product: Omit<Product, "id">): Promise<Product> {
+  const response = await api.post<Product>("/product", product);
+  return response.data;
+}
+
+
+export async function update(product: Product): Promise<Product> {
+  const response = await api.put<Product>(`/product/${product.id}`, product);
+  return response.data;
+}
+
+export async function deleteProduct(productId: number): Promise<void> {
+  await api.delete(`/product/${productId}`);
 }

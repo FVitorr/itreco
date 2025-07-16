@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import Button, { ButtonProps } from "@mui/material/Button";
+import {motion} from "framer-motion";
+import Button, {ButtonProps} from "@mui/material/Button";
 
 interface MotionButtonProps extends ButtonProps {
   children: React.ReactNode;

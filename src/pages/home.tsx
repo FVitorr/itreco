@@ -8,15 +8,15 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Header from "./componentes/header";
 import Footer from "./componentes/footer";
-import { getCategory } from "../services/category.service";
-import { getTopStores } from "../services/store.service";
-import { useState, useEffect } from "react";
-import { Category } from "../dtos/category.dto";
-import { Store } from "../dtos/store.dto";
+import {getCategory} from "../services/category.service";
+import {getTopStores} from "../services/store.service";
+import {useEffect, useState} from "react";
+import {Category} from "../dtos/category.dto";
+import {Store} from "../dtos/store.dto";
 import CardProducts from "./componentes/cardProducts";
-import { Product } from "../dtos/product.dto";
+import {Product} from "../dtos/product.dto";
 import Rating from "@mui/material/Rating";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 export default function HomePage() {
   const navigate = useNavigate();

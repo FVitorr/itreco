@@ -1,366 +1,302 @@
-import { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
-  Box,
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  IconButton,
-  Grid,
-  Modal,
-  TextField,
+    Box,
+    Button,
+    Card,
+    CardContent,
+    Chip,
+    FormControl,
+    IconButton,
+    InputLabel,
+    MenuItem,
+    Modal,
+    OutlinedInput,
+    Select,
+    TextField,
+    Typography,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import Header from "./componentes/header";
-import { Product } from "../dtos/product.dto";
-import { getProductStores } from "../services/products.service";
+import Footer from "./componentes/footer";
+import {Product} from "../dtos/product.dto";
+import {deleteProduct, getProductStores, save, update} from "../services/products.service";
+import {getCategory} from "../services/category.service";
+import {Category} from "../dtos/category.dto";
+import {toast} from "react-toastify";
+import {Controller, useForm} from "react-hook-form";
+import {yupResolver} from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import {InferType} from "yup";
+import ProductCardEdit from "./componentes/cardProductEdit";
+
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250,
+        },
+    },
+};
+
+const schema = yup.object({
+    name: yup.string().required("Nome é obrigatório"),
+    description: yup.string().required("Descrição é obrigatória"),
+    price: yup
+        .number()
+        .typeError("Preço deve ser um número")
+        .positive("Preço deve ser positivo")
+        .required("Preço é obrigatório"),
+    image: yup.string().url("URL inválida").required("Imagem é obrigatória"),
+    categoryIds: yup
+        .array()
+        .of(yup.string().required())
+        .min(1, "Selecione pelo menos uma categoria")
+        .required("Categorias são obrigatórias"),
+});
+
+type FormData = InferType<typeof schema>;
 
 export default function ProductsCrudPage() {
-  const initialProducts: Product[] = [];
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    price: "",
-    image: "",
-  });
+    const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const response = await getProductStores();
-      setProducts(response.content || []);
-    };
-    fetchProducts();
-  }, []);
-
-  const handleOpenModal = (product?: Product) => {
-    setEditingProduct(product || null);
-    setForm(
-      product
-        ? {
-            name: product.name,
-            description: product.description,
-            price: product.price.toString(),
-            image: product.imageUrl || "",
-          }
-        : { name: "", description: "", price: "", image: "" }
-    );
-    setModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    setEditingProduct(null);
-  };
-
-  const handleSave = () => {
-    const newProduct: Product = {
-      id: editingProduct ? editingProduct.id : Date.now(),
-      name: form.name,
-      description: form.description,
-      price: parseFloat(form.price),
-      imageUrl: form.image,
-    };
-
-    setProducts((prev) => {
-      if (editingProduct) {
-        return prev.map((p) => (p.id === editingProduct.id ? newProduct : p));
-      }
-      return [...prev, newProduct];
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<FormData>({
+        resolver: yupResolver(schema),
     });
 
-    handleCloseModal();
-  };
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await getProductStores();
+            setProducts(response.content || []);
+            const catResponse = await getCategory();
+            setCategories(catResponse || []);
+        };
+        fetchData();
+    }, []);
 
-  const handleDelete = (id: number) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-  };
+    const handleOpenModal = (product?: Product) => {
+        setEditingProduct(product || null);
+        reset(
+            product
+                ? {
+                    name: product.name,
+                    description: product.description,
+                    price: product.price,
+                    image: product.imageUrl || "",
+                    categoryIds: product.categories?.map((c) => c.id.toString()) || [],
+                }
+                : { name: "", description: "", price: 0, image: "", categoryIds: [] }
+        );
+        setModalOpen(true);
+    };
 
-  return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
-      <Header />
-      <Box
-        component="section"
-        sx={{
-          maxWidth: 1200,
-          mx: "auto",
-          px: 2,
-          py: 4,
-        }}
-      >
-        <Typography variant="h4" fontWeight="bold" mb={3}>
-          Produtos
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={() => handleOpenModal()}
-          sx={{ mb: 4 }}
-        >
-          Adicionar Produto
-        </Button>
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        setEditingProduct(null);
+    };
 
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-            gap: 4,
-          }}
-        >
-          {products.map((product) => (
-            <Card key={product.id} sx={{ position: "relative" }}>
-              <Box sx={{ position: "absolute", top: 0, right: 0 }}>
-                <IconButton onClick={() => handleOpenModal(product)}>
-                  <EditIcon />
-                </IconButton>
-                <IconButton onClick={() => handleDelete(product.id)}>
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-              <CardContent
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  style={{
-                    width: "100%",
-                    height: 150,
-                    objectFit: "contain",
-                    borderRadius: 8,
-                  }}
-                />
-                <Box>
-                  <Typography variant="h6" mt={2}>
-                    {product.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {product.description}
-                  </Typography>
-                  <Typography variant="subtitle1" fontWeight="bold" mt={1}>
-                    R$ {product.price.toFixed(2)}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
+    const onSubmit = async (form: FormData) => {
+        const selectedCategories = form.categoryIds
+            .map((id) => categories.find((cat) => cat.id.toString() === id))
+            .filter((cat): cat is Category => cat !== undefined);
 
-        <Modal open={modalOpen} onClose={handleCloseModal}>
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              bgcolor: "background.paper",
-              boxShadow: 24,
-              p: 4,
-              borderRadius: 2,
-              width: 400,
-            }}
-          >
-            <Typography variant="h6" mb={2}>
-              {editingProduct ? "Editar Produto" : "Novo Produto"}
-            </Typography>
-            <TextField
-              label="Nome"
-              fullWidth
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Descrição"
-              fullWidth
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Preço"
-              type="number"
-              fullWidth
-              value={form.price}
-              onChange={(e) => setForm({ ...form, price: e.target.value })}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="URL da Imagem"
-              fullWidth
-              value={form.image}
-              onChange={(e) => setForm({ ...form, image: e.target.value })}
-              sx={{ mb: 2 }}
-            />
-            <Button variant="contained" fullWidth onClick={handleSave}>
-              Salvar
-            </Button>
-          </Box>
-        </Modal>
-      </Box>
+        const productToSend = {
+            name: form.name,
+            description: form.description,
+            price: form.price,
+            imageUrl: form.image,
+            categories: selectedCategories,
+        };
 
-      <Box
-        component="footer"
-        sx={{ bgcolor: "grey.900", color: "grey.300", py: 6 }}
-      >
-        <Box sx={{ maxWidth: 1200, mx: "auto", px: 2 }}>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                md: "repeat(4, 1fr)",
-              },
-              gap: 4,
-            }}
-          >
-            <Box>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Box
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    bgcolor: "error.main",
-                    borderRadius: "50%",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    mr: 1,
-                  }}
-                >
-                  <LocalShippingIcon />
-                </Box>
-                <Typography variant="h6" fontWeight="bold" color="common.white">
-                  MarketPlace
+        try {
+            let savedProduct: Product;
+            if (editingProduct) {
+                const editProduct = {
+                    id: editingProduct.id,
+                    ...productToSend,
+                };
+                savedProduct = await update(editProduct);
+            } else {
+                savedProduct = await save(productToSend);
+            }
+
+            setProducts((prev) =>
+                editingProduct
+                    ? prev.map((p) => (p.id === editingProduct.id ? savedProduct : p))
+                    : [...prev, savedProduct]
+            );
+
+            handleCloseModal();
+            toast.success(editingProduct ? "Produto atualizado!" : "Produto cadastrado!");
+        } catch (error) {
+            toast.error("Erro ao salvar produto");
+            console.error(error);
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            await deleteProduct(id);
+            setProducts((prev) => prev.filter((p) => p.id !== id));
+            toast.success("Produto excluído com sucesso!");
+        } catch (err) {
+            toast.error("Erro ao excluir produto");
+        }
+    };
+
+    return (
+        <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb", display: "flex", flexDirection: "column" }}>
+            <Header />
+            <Box component="section" sx={{ maxWidth: 1200, mx: "auto", px: 2, py: 4, flex: "1 0 auto" }}>
+                <Typography variant="h4" fontWeight="bold" mb={3}>
+                    Produtos
                 </Typography>
-              </Box>
-              <Typography variant="body2" color="grey.400">
-                Seus produtos favoritos, entregues com rapidez e qualidade.
-              </Typography>
-            </Box>
-            <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight="bold"
-                mb={2}
-                color="common.white"
-              >
-                Empresa
-              </Typography>
-              <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0 }}>
-                {["Sobre nós", "Carreiras", "Imprensa"].map((text) => (
-                  <li key={text}>
-                    <a
-                      href="#"
-                      style={{
-                        color: "grey.400",
-                        textDecoration: "none",
-                        cursor: "pointer",
-                      }}
-                      onMouseOver={(e) =>
-                        (e.currentTarget.style.color = "#fff")
-                      }
-                      onMouseOut={(e) =>
-                        (e.currentTarget.style.color = "grey.400")
-                      }
-                    >
-                      {text}
-                    </a>
-                  </li>
-                ))}
-              </Box>
-            </Box>
-            <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight="bold"
-                mb={2}
-                color="common.white"
-              >
-                Suporte
-              </Typography>
-              <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0 }}>
-                {["Central de Ajuda", "Contato", "Termos de Uso"].map(
-                  (text) => (
-                    <li key={text}>
-                      <a
-                        href="#"
-                        style={{
-                          color: "grey.400",
-                          textDecoration: "none",
-                          cursor: "pointer",
+                <Button variant="contained" onClick={() => handleOpenModal()} sx={{ mb: 4 }}>
+                    Adicionar Produto
+                </Button>
+
+                <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 4 }}>
+                    {products.map((product) => (
+                        <ProductCardEdit
+                            key={product.id}
+                            product={product}
+                            handleOpenModal={handleOpenModal}
+                            handleDelete={handleDelete}
+                        />
+                    ))}
+                </Box>
+
+                <Modal open={modalOpen} onClose={handleCloseModal}>
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            bgcolor: "background.paper",
+                            boxShadow: 24,
+                            p: 4,
+                            borderRadius: 2,
+                            width: 400,
                         }}
-                        onMouseOver={(e) =>
-                          (e.currentTarget.style.color = "#fff")
-                        }
-                        onMouseOut={(e) =>
-                          (e.currentTarget.style.color = "grey.400")
-                        }
-                      >
-                        {text}
-                      </a>
-                    </li>
-                  )
-                )}
-              </Box>
-            </Box>
-            <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight="bold"
-                mb={2}
-                color="common.white"
-              >
-                Parceiros
-              </Typography>
-              <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0 }}>
-                {["Seja um parceiro", "Entregadores", "Lojas"].map((text) => (
-                  <li key={text}>
-                    <a
-                      href="#"
-                      style={{
-                        color: "grey.400",
-                        textDecoration: "none",
-                        cursor: "pointer",
-                      }}
-                      onMouseOver={(e) =>
-                        (e.currentTarget.style.color = "#fff")
-                      }
-                      onMouseOut={(e) =>
-                        (e.currentTarget.style.color = "grey.400")
-                      }
                     >
-                      {text}
-                    </a>
-                  </li>
-                ))}
-              </Box>
+                        <Typography variant="h6" mb={2}>
+                            {editingProduct ? "Editar Produto" : "Novo Produto"}
+                        </Typography>
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                            <Controller
+                                name="name"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Nome"
+                                        fullWidth
+                                        {...field}
+                                        error={!!errors.name}
+                                        helperText={errors.name?.message}
+                                        sx={{ mb: 2 }}
+                                    />
+                                )}
+                            />
+
+                            <Controller
+                                name="description"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Descrição"
+                                        fullWidth
+                                        {...field}
+                                        error={!!errors.description}
+                                        helperText={errors.description?.message}
+                                        sx={{ mb: 2 }}
+                                    />
+                                )}
+                            />
+
+                            <FormControl fullWidth sx={{ mb: 2 }} error={!!errors.categoryIds}>
+                                <InputLabel id="category-multiple-label">Categorias</InputLabel>
+                                <Controller
+                                    name="categoryIds"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            {...field}
+                                            labelId="category-multiple-label"
+                                            multiple
+                                            input={<OutlinedInput label="Categorias" />}
+                                            renderValue={(selected) => (
+                                                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                                                    {selected.map((id) => {
+                                                        const cat = categories.find((c) => c.id.toString() === id);
+                                                        return cat ? <Chip key={id} label={cat.name} /> : null;
+                                                    })}
+                                                </Box>
+                                            )}
+                                            MenuProps={MenuProps}
+                                        >
+                                            {categories.map((cat) => (
+                                                <MenuItem key={cat.id} value={cat.id.toString()}>
+                                                    {cat.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    )}
+                                />
+                                <Typography variant="caption" color="error">
+                                    {errors.categoryIds?.message}
+                                </Typography>
+                            </FormControl>
+
+                            <Controller
+                                name="price"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Preço"
+                                        type="number"
+                                        fullWidth
+                                        {...field}
+                                        error={!!errors.price}
+                                        helperText={errors.price?.message}
+                                        sx={{ mb: 2 }}
+                                    />
+                                )}
+                            />
+
+                            <Controller
+                                name="image"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="URL da Imagem"
+                                        fullWidth
+                                        {...field}
+                                        error={!!errors.image}
+                                        helperText={errors.image?.message}
+                                        sx={{ mb: 2 }}
+                                    />
+                                )}
+                            />
+
+                            <Button variant="contained" fullWidth type="submit">
+                                Salvar
+                            </Button>
+                        </form>
+                    </Box>
+                </Modal>
             </Box>
-          </Box>
-          <Box
-            sx={{
-              borderTop: 1,
-              borderColor: "grey.700",
-              mt: 6,
-              pt: 3,
-              textAlign: "center",
-            }}
-          >
-            <Typography variant="body2" color="grey.500">
-              &copy; 2024 MarketPlace. Todos os direitos reservados.
-            </Typography>
-          </Box>
+            <Footer />
         </Box>
-      </Box>
-    </Box>
-  );
+    );
 }

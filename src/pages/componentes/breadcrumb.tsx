@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import HomeIcon from "@mui/icons-material/Home";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
