@@ -1,4 +1,4 @@
-import {Category} from "./category.dto";
+import { Category } from "./category.dto";
 
 export interface Product {
   id: number;
@@ -7,4 +7,5 @@ export interface Product {
   price: number;
   imageUrl: string;
   categories?: Category[];
+  quantity?: number;
 }

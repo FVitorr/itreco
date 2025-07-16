@@ -19,6 +19,8 @@ const cartSlice = createSlice({
 
       if (!exists) {
         state.products.push(product);
+      } else {
+        exists.quantity = (exists.quantity || 1) + 1;
       }
     },
     clearCart: (state) => {

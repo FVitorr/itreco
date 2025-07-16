@@ -1,14 +1,15 @@
-import {motion} from "framer-motion";
+import { motion } from "framer-motion";
 import Card from "@mui/material/Card";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import {Product} from "../../dtos/product.dto";
+import { Product } from "../../dtos/product.dto";
 
-import {useDispatch} from "react-redux";
-import {AppDispatch} from "../../app/store";
-import {addProductToCart} from "../../features/cart/cartSlice";
-import {toast} from "react-toastify";
-import {MotionButton} from "./button";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../app/store";
+import { addProductToCart } from "../../features/cart/cartSlice";
+import { toast } from "react-toastify";
+import { MotionButton } from "./button";
+import { sendAddToCart } from "../../services/cart.service";
 
 interface CardProductsProps {
   product: Product;
@@ -19,7 +20,8 @@ const MotionCard = motion(Card);
 export default function CardProducts({ product }: CardProductsProps) {
   const dispatch = useDispatch<AppDispatch>();
 
-  const handleAddToRedux = () => {
+  const handleAddToRedux = async () => {
+    //const res = await sendAddToCart(product);
     dispatch(addProductToCart({ product }));
     toast.success(`"${product.name}" adicionado ao carrinho!`);
   };
