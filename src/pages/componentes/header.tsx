@@ -163,7 +163,7 @@ export default function Header() {
               size="small"
               sx={{ height: "100%" }}
               color="error"
-              onClick={() => navigate("/cadastrar")}
+              onClick={() => navigate("/register")}
             >
               Cadastrar
             </MotionButton>
