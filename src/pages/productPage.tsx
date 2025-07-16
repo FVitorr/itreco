@@ -12,28 +12,37 @@ import Header from "./componentes/header";
 import Footer from "./componentes/footer";
 import { Product } from "../dtos/product.dto";
 import CardProducts from "./componentes/cardProducts";
-import { Store } from "../dtos/store.dto";
 import { getProducts } from "../services/products.service";
 import { getCategory } from "../services/category.service";
-import { ProductList } from "../dtos/productList.dto";
 import { useLocation } from "react-router-dom";
 
 export default function AllProducts() {
   const location = useLocation();
   const categoryIdFromState = location?.state?.categoryId ?? null;
+  const searchTermFromState = location?.state?.searchTerm ?? "";
 
   const [categories, setCategories] = useState<{ id: any; name: string }[]>([
     { id: 0, name: "Todas" },
   ]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategoryId, setFilterCategoryId] =
-    useState<number>(categoryIdFromState);
+  const [filterCategoryId, setFilterCategoryId] = useState<number>(categoryIdFromState);
   const [currentPage, setCurrentPage] = useState(1);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
 
   const productsPerPage = 10;
+
+  // Atualiza o termo de busca caso venha via location.state
+  useEffect(() => {
+    if (searchTermFromState) {
+      setSearchTerm(searchTermFromState);
+      setCurrentPage(1);
+
+      // Remove o state após leitura (previne reuso ao voltar no navegador)
+      window.history.replaceState({}, document.title);
+    }
+  }, [searchTermFromState]);
 
   // Carregar categorias uma vez
   useEffect(() => {
@@ -48,7 +57,7 @@ export default function AllProducts() {
     fetchCategories();
   }, []);
 
-  // Atualizar filtro de categoria ao montar se veio via location
+  // Atualizar filtro de categoria ao montar, se veio via location
   useEffect(() => {
     if (categoryIdFromState !== 0) {
       setFilterCategoryId(categoryIdFromState);
@@ -56,14 +65,13 @@ export default function AllProducts() {
   }, [categoryIdFromState]);
 
   // Buscar produtos sempre que filtros mudarem
-// ...
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true);
       try {
         const params = {
           page: currentPage - 1,
-          size: productsPerPage, 
+          size: productsPerPage,
           name: searchTerm || undefined,
           categoryId: filterCategoryId !== 0 ? filterCategoryId : undefined,
         };
@@ -71,8 +79,6 @@ export default function AllProducts() {
         if (data && Array.isArray(data.content)) {
           setProducts(data.content);
           setTotalPages(data.totalPages ?? 1);
-
-          console.log(data);
         } else {
           setProducts([]);
           setTotalPages(1);
@@ -86,8 +92,6 @@ export default function AllProducts() {
 
     fetchProducts();
   }, [searchTerm, filterCategoryId, currentPage]);
-  // ...
-
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
@@ -161,7 +165,7 @@ export default function AllProducts() {
               }}
             >
               {products.map((product) => (
-                <CardProducts product={product} />
+                <CardProducts key={product.id} product={product} />
               ))}
             </Box>
           )}

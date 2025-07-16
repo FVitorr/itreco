@@ -36,14 +36,11 @@ export default function Header() {
     fetchUser();
   }, []);
 
-  const search = async (params: string) => {
-    try {
-      const data = await searchProductsOrStores(params);
-      navigate("/allProducts", { state: { results: data } });
-    } catch (err) {
-      console.error("Erro ao buscar:", err);
-    }
+  const search = (term: string) => {
+    if (!term.trim()) return;
+    navigate("/allProducts", { state: { searchTerm: term } });
   };
+
 
   const mainAddress = userInfo?.addresses?.[0];
 

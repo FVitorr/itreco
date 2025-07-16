@@ -40,6 +40,6 @@ export async function searchProductsOrStores(
 }
 
 export async function getProductStores(): Promise<PaginatedResponse<Product>> {
-  const response = await api.get<PaginatedResponse<Product>>("/product/stores");
+  const response = await api.get<PaginatedResponse<Product>>("/product/store");
   return response.data;
 }
