@@ -7,7 +7,7 @@ import api from "./api";
 export async function getProducts(
   params: GetProductsParam = {}
 ): Promise<PaginatedResponse<Product>> {
-  const { categoryId, name, page = 0, size = 10 } = params;
+  const { categoryId, name, page = 0, size = 10, sort } = params;
 
   const queryParams: Record<string, any> = {
     page,
@@ -16,6 +16,7 @@ export async function getProducts(
 
   if (categoryId) queryParams.categoryId = categoryId;
   if (name) queryParams.name = name;
+  if (sort) queryParams.sort = sort;
 
   const response = await api.get<PaginatedResponse<Product>>(
     `/product/category`,

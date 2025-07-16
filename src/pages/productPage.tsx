@@ -1,12 +1,22 @@
-import {useEffect, useState} from "react";
-import {Box, CircularProgress, MenuItem, Pagination, Select, TextField, Typography,} from "@mui/material";
+import { useEffect, useState } from "react";
+import {
+  Box,
+  CircularProgress,
+  MenuItem,
+  Pagination,
+  Select,
+  TextField,
+  Typography,
+  Button,
+  Paper,
+} from "@mui/material";
 import Header from "./componentes/header";
 import Footer from "./componentes/footer";
-import {Product} from "../dtos/product.dto";
+import { Product } from "../dtos/product.dto";
 import CardProducts from "./componentes/cardProducts";
-import {getProducts} from "../services/products.service";
-import {getCategory} from "../services/category.service";
-import {useLocation} from "react-router-dom";
+import { getProducts } from "../services/products.service";
+import { getCategory } from "../services/category.service";
+import { useLocation } from "react-router-dom";
 
 export default function AllProducts() {
   const location = useLocation();
@@ -17,26 +27,25 @@ export default function AllProducts() {
     { id: 0, name: "Todas" },
   ]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
   const [filterCategoryId, setFilterCategoryId] = useState<number>(categoryIdFromState);
   const [currentPage, setCurrentPage] = useState(1);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortOrder, setSortOrder] = useState("");
 
   const productsPerPage = 10;
 
-  // Atualiza o termo de busca caso venha via location.state
   useEffect(() => {
     if (searchTermFromState) {
       setSearchTerm(searchTermFromState);
+      setAppliedSearchTerm(searchTermFromState);
       setCurrentPage(1);
-
-      // Remove o state após leitura (previne reuso ao voltar no navegador)
       window.history.replaceState({}, document.title);
     }
   }, [searchTermFromState]);
 
-  // Carregar categorias uma vez
   useEffect(() => {
     async function fetchCategories() {
       try {
@@ -49,14 +58,12 @@ export default function AllProducts() {
     fetchCategories();
   }, []);
 
-  // Atualizar filtro de categoria ao montar, se veio via location
   useEffect(() => {
     if (categoryIdFromState !== 0) {
       setFilterCategoryId(categoryIdFromState);
     }
   }, [categoryIdFromState]);
 
-  // Buscar produtos sempre que filtros mudarem
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true);
@@ -64,8 +71,9 @@ export default function AllProducts() {
         const params = {
           page: currentPage - 1,
           size: productsPerPage,
-          name: searchTerm || undefined,
+          name: appliedSearchTerm || undefined,
           categoryId: filterCategoryId !== 0 ? filterCategoryId : undefined,
+          sort: sortOrder || undefined,
         };
         const data = await getProducts(params);
         if (data && Array.isArray(data.content)) {
@@ -83,100 +91,139 @@ export default function AllProducts() {
     }
 
     fetchProducts();
-  }, [searchTerm, filterCategoryId, currentPage]);
+  }, [appliedSearchTerm, filterCategoryId, currentPage, sortOrder]);
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
-      <Header />
+      <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
+        <Header />
 
-      <Box
-        component="section"
-        sx={{ maxWidth: 1200, mx: "auto", px: 2, mt: 2, mb: 2 }}
-      >
-        <Typography variant="h4" mb={4}>
-          Produtos
-        </Typography>
-
-        {/* Filtros */}
         <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            mb: 4,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
+            component="section"
+            sx={{ maxWidth: 1200, mx: "auto", px: 2, mt: 2, mb: 2 }}
         >
-          <TextField
-            label="Buscar"
-            variant="outlined"
-            size="small"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            sx={{ flex: 1, minWidth: 200 }}
-          />
+          <Typography variant="h4" mb={4}>
+            Produtos
+          </Typography>
 
-          <Select
-            value={filterCategoryId}
-            onChange={(e) => {
-              setFilterCategoryId(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            size="small"
-            sx={{ minWidth: 150 }}
-          >
-            {categories.map((cat) => (
-              <MenuItem key={cat.id} value={cat.id}>
-                {cat.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </Box>
-
-        {/* Lista de produtos */}
-        <Box sx={{ py: 8 }}>
-          {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
-              <CircularProgress />
-            </Box>
-          ) : products.length === 0 ? (
-            <Typography>Nenhum produto encontrado.</Typography>
-          ) : (
+          {/* Filtros */}
+          <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+            <Typography variant="h6" mb={2}>
+              Filtros
+            </Typography>
             <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  md: "repeat(2, 1fr)",
-                  lg: "repeat(4, 1fr)",
-                },
-                gap: 3,
-              }}
+                sx={{
+                  display: "flex",
+                  gap: 3,
+                  flexWrap: "wrap",
+                  alignItems: "flex-end",
+                }}
             >
-              {products.map((product) => (
-                <CardProducts key={product.id} product={product} />
-              ))}
+              <Box sx={{ display: "flex", flexDirection: "column", minWidth: 200 }}>
+                <Typography variant="body2" mb={0.5}>
+                  Nome:
+                </Typography>
+                <TextField
+                    variant="outlined"
+                    size="small"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </Box>
+
+              <Box>
+                <Button
+                    variant="contained"
+                    sx={{ mt: "auto", height: "40px" }}
+                    onClick={() => {
+                      setAppliedSearchTerm(searchTerm);
+                      setCurrentPage(1);
+                    }}
+                >
+                  Buscar
+                </Button>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "column", minWidth: 180 }}>
+                <Typography variant="body2" mb={0.5}>
+                  Categoria:
+                </Typography>
+                <Select
+                    value={filterCategoryId}
+                    onChange={(e) => {
+                      setFilterCategoryId(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    size="small"
+                >
+                  {categories.map((cat) => (
+                      <MenuItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </MenuItem>
+                  ))}
+                </Select>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "column", minWidth: 180 }}>
+                <Typography variant="body2" mb={0.5}>
+                  Ordenar por preço:
+                </Typography>
+                <Select
+                    value={sortOrder}
+                    onChange={(e) => {
+                      setSortOrder(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    size="small"
+                >
+                  <MenuItem value="">Nenhum</MenuItem>
+                  <MenuItem value="price,asc">Menor para maior</MenuItem>
+                  <MenuItem value="price,desc">Maior para menor</MenuItem>
+                </Select>
+              </Box>
             </Box>
+          </Paper>
+
+          {/* Lista de produtos */}
+          <Box sx={{ py: 8 }}>
+            {loading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
+                  <CircularProgress />
+                </Box>
+            ) : products.length === 0 ? (
+                <Typography>Nenhum produto encontrado.</Typography>
+            ) : (
+                <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: {
+                        xs: "1fr",
+                        md: "repeat(2, 1fr)",
+                        lg: "repeat(4, 1fr)",
+                      },
+                      gap: 3,
+                    }}
+                >
+                  {products.map((product) => (
+                      <CardProducts product={product} />
+                  ))}
+                </Box>
+            )}
+          </Box>
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+              <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+                <Pagination
+                    count={totalPages}
+                    page={currentPage}
+                    onChange={(_, page) => setCurrentPage(page)}
+                    color="primary"
+                />
+              </Box>
           )}
         </Box>
 
-        {/* Paginação */}
-        {totalPages > 1 && (
-          <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
-            <Pagination
-              count={totalPages}
-              page={currentPage}
-              onChange={(_, page) => setCurrentPage(page)}
-              color="primary"
-            />
-          </Box>
-        )}
+        <Footer />
       </Box>
-
-      <Footer />
-    </Box>
   );
 }

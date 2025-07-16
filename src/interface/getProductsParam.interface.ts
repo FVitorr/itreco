@@ -4,4 +4,5 @@ export interface GetProductsParam {
   page?: number; 
   limit?: number;
   size?:number;
+  sort?:string;
 }
