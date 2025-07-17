@@ -1,6 +1,6 @@
-import { useSelector } from "react-redux";
+import { useEffect, useMemo, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../app/store";
-import { useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -9,27 +9,64 @@ import {
   Checkbox,
   Typography,
   Link,
+  ButtonGroup,
 } from "@mui/material";
 import Header from "./componentes/header";
-import { Product } from "../dtos/product.dto";
+import { CartItem } from "../dtos/cartItem.dto";
+import {
+  incrementQuantity,
+  decrementQuantity,
+  setCartItems,
+} from "../features/cart/cartSlice";
+import { getCart, syncCartWithBackend } from "../services/cart.service";
 
 export default function CartPage() {
-  const products = useSelector((state: RootState) => state.cart.products);
+  const dispatch = useDispatch();
+  const items = useSelector((state: RootState) => state.cart.items);
 
   const [selectedProducts, setSelectedProducts] = useState<number[]>(
-      products.map((p) => p.id)
+    items.map((item) => item.product.id)
   );
-
-  // Estado para controlar quais produtos estão com a descrição expandida
   const [expandedDescriptions, setExpandedDescriptions] = useState<
-      Record<number, boolean>
+    Record<number, boolean>
   >({});
+
+  const selectedItems = useMemo(() => {
+    return items.filter((item) => selectedProducts.includes(item.product.id));
+  }, [items, selectedProducts]);
+
+  const subtotal = useMemo(() => {
+    return selectedItems.reduce((sum, item) => sum + item.price, 0);
+  }, [selectedItems]);
+
+  const deliveryFee = selectedItems.length > 0 ? 5 : 0;
+  const total = subtotal + deliveryFee;
+
+  const userJson = sessionStorage.getItem("user");
+  const user = userJson ? JSON.parse(userJson) : null;
+
+  const TRUNCATE_LENGTH = 100;
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (!user?.id || items.length > 0) return;
+
+      try {
+        const cartData = await getCart(user.id);
+        dispatch(setCartItems(cartData.items)); // cartData.items deve estar no formato CartItem[]
+      } catch (error) {
+        console.error("Erro ao buscar carrinho:", error);
+      }
+    };
+
+    fetchCart();
+  }, [user?.id, items.length, dispatch]);
 
   const toggleProductSelection = (productId: number) => {
     setSelectedProducts((prev) =>
-        prev.includes(productId)
-            ? prev.filter((id) => id !== productId)
-            : [...prev, productId]
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
     );
   };
 
@@ -40,147 +77,190 @@ export default function CartPage() {
     }));
   };
 
-  const selectedItems = useMemo(() => {
-    return products.filter((p) => selectedProducts.includes(p.id));
-  }, [products, selectedProducts]);
+  const handleFinalizePurchase = async () => {
+    if (!user?.id) {
+      alert("Você precisa estar logado para finalizar a compra.");
+      return;
+    }
 
-  const subtotal = useMemo(() => {
-    return selectedItems.reduce((sum, p) => sum + p.price, 0);
-  }, [selectedItems]);
+    try {
+      await syncCartWithBackend(user.id, selectedItems, total);
+    } catch (error) {
+      console.error("Erro ao sincronizar carrinho:", error);
+    }
+  };
 
-  const deliveryFee = selectedItems.length > 0 ? 5 : 0;
-  const total = subtotal + deliveryFee;
-
-  // Define quantos caracteres mostrar quando não expandido
-  const TRUNCATE_LENGTH = 100;
+  if (!user) {
+    alert("Você precisa estar logado para visualizar o carrinho.");
+    return null;
+  }
 
   return (
-      <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
-        <Header />
-        <Box
-            sx={{
-              py: 4,
-              maxWidth: 900,
-              mx: "auto",
-              px: 2,
-              display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              gap: 4,
-            }}
-        >
-          {/* Lista de produtos - ocupa 2/3 do espaço em md+ */}
-          <Box sx={{ flex: { xs: "none", md: 2 }, minWidth: 0 }}>
-            <Typography variant="h4" fontWeight="bold" mb={2}>
-              Seu Carrinho
-            </Typography>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
+      <Header />
+      <Box
+        sx={{
+          py: 4,
+          maxWidth: 900,
+          mx: "auto",
+          px: 2,
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          gap: 4,
+        }}
+      >
+        <Box sx={{ flex: { xs: "none", md: 2 }, minWidth: 0 }}>
+          <Typography variant="h4" fontWeight="bold" mb={2}>
+            Seu Carrinho
+          </Typography>
 
-            {products.length === 0 ? (
-                <Typography color="text.secondary">Carrinho vazio</Typography>
-            ) : (
-                products.map((product: Product) => {
-                  const isExpanded = expandedDescriptions[product.id] || false;
-                  const description = product.description || "";
-                  const shouldTruncate = description.length > TRUNCATE_LENGTH;
+          {items.length === 0 ? (
+            <Typography color="text.secondary">Carrinho vazio</Typography>
+          ) : (
+            items.map((item: CartItem) => {
+              const { product, quantity, price } = item;
+              const isExpanded = expandedDescriptions[product.id] || false;
+              const description = product.description || "";
+              const shouldTruncate = description.length > TRUNCATE_LENGTH;
 
-                  return (
-                      <Card key={product.id} sx={{ mb: 2 }}>
-                        <CardContent sx={{ display: "flex", alignItems: "center" }}>
-                          <Checkbox
-                              checked={selectedProducts.includes(product.id)}
-                              onChange={() => toggleProductSelection(product.id)}
-                              color="primary"
-                          />
-                          <img
-                              src={product.imageUrl}
-                              alt={product.name}
-                              style={{
-                                width: 70,
-                                height: 70,
-                                borderRadius: "8px",
-                                marginRight: 16,
-                              }}
-                          />
-                          <Box sx={{ flexGrow: 1 }}>
-                            <Typography variant="body1">{product.name}</Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
-                              {isExpanded
-                                  ? description
-                                  : shouldTruncate
-                                      ? description.substring(0, TRUNCATE_LENGTH) + "..."
-                                      : description}
-                              {shouldTruncate && (
-                                  <Link
-                                      component="button"
-                                      variant="body2"
-                                      onClick={() => toggleDescription(product.id)}
-                                  >
-                                    {isExpanded ? "Mostrar menos" : "Mostrar mais"}
-                                  </Link>
-                              )}
-                            </Typography>
-                          </Box>
-                          <Typography fontWeight="bold">
-                            R$ {product.price.toFixed(2).replace(".", ",")}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                  );
-                })
-            )}
-          </Box>
-
-          {/* Resumo do pedido - ocupa 1/3 do espaço em md+ */}
-          {selectedItems.length > 0 && (
-              <Card
-                  sx={{
-                    flex: { xs: "none", md: 1 },
-                    minWidth: { xs: "auto", md: 280 },
-                    alignSelf: "start",
-                  }}
-              >
-                <CardContent>
-                  <Typography variant="h6" mb={1}>
-                    Resumo do Pedido
-                  </Typography>
-                  <Box display="flex" justifyContent="space-between" mb={0.5}>
-                    <Typography>Total de Itens</Typography>
-                    <Typography>{selectedItems.length}</Typography>
-                  </Box>
-                  <Box display="flex" justifyContent="space-between" mb={0.5}>
-                    <Typography>Subtotal</Typography>
-                    <Typography>
-                      R$ {subtotal.toFixed(2).replace(".", ",")}
-                    </Typography>
-                  </Box>
-                  <Box display="flex" justifyContent="space-between" mb={0.5}>
-                    <Typography>Taxa de Entrega</Typography>
-                    <Typography>
-                      R$ {deliveryFee.toFixed(2).replace(".", ",")}
-                    </Typography>
-                  </Box>
-                  <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      mt={1}
-                      mb={2}
-                  >
-                    <Typography fontWeight="bold">Total</Typography>
-                    <Typography fontWeight="bold">
-                      R$ {total.toFixed(2).replace(".", ",")}
-                    </Typography>
-                  </Box>
-                  <Button
-                      variant="contained"
+              return (
+                <Card key={product.id} sx={{ mb: 2 }}>
+                  <CardContent sx={{ display: "flex", alignItems: "center" }}>
+                    <Checkbox
+                      checked={selectedProducts.includes(product.id)}
+                      onChange={() => toggleProductSelection(product.id)}
                       color="primary"
-                      fullWidth
-                      onClick={() => alert("Pedido realizado com sucesso!")}
-                  >
-                    Finalizar Compra
-                  </Button>
-                </CardContent>
-              </Card>
+                    />
+
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      style={{
+                        width: 70,
+                        height: 70,
+                        borderRadius: "8px",
+                        marginRight: 12,
+                      }}
+                    />
+
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="body1">{product.name}</Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ whiteSpace: "pre-line" }}
+                      >
+                        {isExpanded
+                          ? description
+                          : shouldTruncate
+                          ? description.substring(0, TRUNCATE_LENGTH) + "..."
+                          : description}
+                        {shouldTruncate && (
+                          <Link
+                            component="button"
+                            variant="body2"
+                            onClick={() => toggleDescription(product.id)}
+                          >
+                            {isExpanded ? "Mostrar menos" : "Mostrar mais"}
+                          </Link>
+                        )}
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        minWidth: 100,
+                        width: 90,
+                        ml: 2,
+                      }}
+                    >
+                      <Typography fontWeight="bold" mb={1}>
+                        R$ {price.toFixed(2).replace(".", ",")}
+                      </Typography>
+
+                      <ButtonGroup
+                        variant="contained"
+                        size="small"
+                        aria-label="Botões de quantidade"
+                      >
+                        <Button
+                          sx={{ width: 22, minWidth: 22 }}
+                          onClick={() =>
+                            dispatch(decrementQuantity(product.id))
+                          }
+                        >
+                          -
+                        </Button>
+
+                        <Button disabled>{quantity}</Button>
+
+                        <Button
+                          sx={{ width: 22, minWidth: 22 }}
+                          onClick={() =>
+                            dispatch(incrementQuantity(product.id))
+                          }
+                        >
+                          +
+                        </Button>
+                      </ButtonGroup>
+                    </Box>
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </Box>
+
+        {selectedItems.length > 0 && (
+          <Card
+            sx={{
+              flex: { xs: "none", md: 1 },
+              minWidth: { xs: "auto", md: 280 },
+              alignSelf: "start",
+            }}
+          >
+            <CardContent>
+              <Typography variant="h6" mb={1}>
+                Resumo do Pedido
+              </Typography>
+              <Box display="flex" justifyContent="space-between" mb={0.5}>
+                <Typography>Total de Itens</Typography>
+                <Typography>{selectedItems.length}</Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between" mb={0.5}>
+                <Typography>Subtotal</Typography>
+                <Typography>
+                  R$ {subtotal.toFixed(2).replace(".", ",")}
+                </Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between" mb={0.5}>
+                <Typography>Taxa de Entrega</Typography>
+                <Typography>
+                  R$ {deliveryFee.toFixed(2).replace(".", ",")}
+                </Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between" mt={1} mb={2}>
+                <Typography fontWeight="bold">Total</Typography>
+                <Typography fontWeight="bold">
+                  R$ {total.toFixed(2).replace(".", ",")}
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={handleFinalizePurchase}
+              >
+                Finalizar Compra
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </Box>
+    </Box>
   );
 }

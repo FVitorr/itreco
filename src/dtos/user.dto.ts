@@ -15,5 +15,6 @@ export interface UserRegisterData {
   lastName: string;
   email: string;
   password: string;
+  phone: string;
   addresses: Address[];
 }
