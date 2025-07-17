@@ -204,7 +204,7 @@ export default function AllProducts() {
                     }}
                 >
                   {products.map((product) => (
-                      <CardProducts product={product} />
+                    <CardProducts key={product.id} product={product} />
                   ))}
                 </Box>
             )}

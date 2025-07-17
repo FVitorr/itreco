@@ -1,7 +1,6 @@
-import { useSelector } from "react-redux";
+import { useEffect, useMemo, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../app/store";
-import { useMemo, useState } from "react";
-import Badge from "@mui/material/Badge";
 import {
   Box,
   Button,
@@ -13,19 +12,55 @@ import {
   ButtonGroup,
 } from "@mui/material";
 import Header from "./componentes/header";
-import { Product } from "../dtos/product.dto";
-import { Trash2 } from "lucide-react"; // ✔️ import correto do ícone
+import { CartItem } from "../dtos/cartItem.dto";
+import {
+  incrementQuantity,
+  decrementQuantity,
+  setCartItems,
+} from "../features/cart/cartSlice";
+import { getCart, syncCartWithBackend } from "../services/cart.service";
 
 export default function CartPage() {
-  const products = useSelector((state: RootState) => state.cart.products);
+  const dispatch = useDispatch();
+  const items = useSelector((state: RootState) => state.cart.items);
 
   const [selectedProducts, setSelectedProducts] = useState<number[]>(
-    products.map((p) => p.id)
+    items.map((item) => item.product.id)
   );
-
   const [expandedDescriptions, setExpandedDescriptions] = useState<
     Record<number, boolean>
   >({});
+
+  const selectedItems = useMemo(() => {
+    return items.filter((item) => selectedProducts.includes(item.product.id));
+  }, [items, selectedProducts]);
+
+  const subtotal = useMemo(() => {
+    return selectedItems.reduce((sum, item) => sum + item.price, 0);
+  }, [selectedItems]);
+
+  const deliveryFee = selectedItems.length > 0 ? 5 : 0;
+  const total = subtotal + deliveryFee;
+
+  const userJson = sessionStorage.getItem("user");
+  const user = userJson ? JSON.parse(userJson) : null;
+
+  const TRUNCATE_LENGTH = 100;
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (!user?.id || items.length > 0) return;
+
+      try {
+        const cartData = await getCart(user.id);
+        dispatch(setCartItems(cartData.items)); // cartData.items deve estar no formato CartItem[]
+      } catch (error) {
+        console.error("Erro ao buscar carrinho:", error);
+      }
+    };
+
+    fetchCart();
+  }, [user?.id, items.length, dispatch]);
 
   const toggleProductSelection = (productId: number) => {
     setSelectedProducts((prev) =>
@@ -42,18 +77,23 @@ export default function CartPage() {
     }));
   };
 
-  const selectedItems = useMemo(() => {
-    return products.filter((p) => selectedProducts.includes(p.id));
-  }, [products, selectedProducts]);
+  const handleFinalizePurchase = async () => {
+    if (!user?.id) {
+      alert("Você precisa estar logado para finalizar a compra.");
+      return;
+    }
 
-  const subtotal = useMemo(() => {
-    return selectedItems.reduce((sum, p) => sum + p.price, 0);
-  }, [selectedItems]);
+    try {
+      await syncCartWithBackend(user.id, selectedItems, total);
+    } catch (error) {
+      console.error("Erro ao sincronizar carrinho:", error);
+    }
+  };
 
-  const deliveryFee = selectedItems.length > 0 ? 5 : 0;
-  const total = subtotal + deliveryFee;
-
-  const TRUNCATE_LENGTH = 100;
+  if (!user) {
+    alert("Você precisa estar logado para visualizar o carrinho.");
+    return null;
+  }
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
@@ -74,10 +114,11 @@ export default function CartPage() {
             Seu Carrinho
           </Typography>
 
-          {products.length === 0 ? (
+          {items.length === 0 ? (
             <Typography color="text.secondary">Carrinho vazio</Typography>
           ) : (
-            products.map((product: Product) => {
+            items.map((item: CartItem) => {
+              const { product, quantity, price } = item;
               const isExpanded = expandedDescriptions[product.id] || false;
               const description = product.description || "";
               const shouldTruncate = description.length > TRUNCATE_LENGTH;
@@ -98,6 +139,7 @@ export default function CartPage() {
                         width: 70,
                         height: 70,
                         borderRadius: "8px",
+                        marginRight: 12,
                       }}
                     />
 
@@ -124,28 +166,46 @@ export default function CartPage() {
                         )}
                       </Typography>
                     </Box>
-                    <Box sx={{ textAlign: "right", minWidth: 100 }}>
-                      <Typography fontWeight="bold" mb={1}>
-                        R$ {product.price.toFixed(2).replace(".", ",")}
-                      </Typography>
-                    </Box>
+
                     <Box
                       sx={{
                         display: "flex",
                         flexDirection: "column",
-                        alignItems: "flex-end",
-                        width: "100%",
-                        height: "100%",
-                        border: "1px solid red",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        minWidth: 100,
+                        width: 90,
+                        ml: 2,
                       }}
                     >
+                      <Typography fontWeight="bold" mb={1}>
+                        R$ {price.toFixed(2).replace(".", ",")}
+                      </Typography>
+
                       <ButtonGroup
                         variant="contained"
-                        aria-label="Basic button group"
+                        size="small"
+                        aria-label="Botões de quantidade"
                       >
-                        <Button>One</Button>
-                        <Button disabled>{product.quantity}</Button>
-                        <Button>Three</Button>
+                        <Button
+                          sx={{ width: 22, minWidth: 22 }}
+                          onClick={() =>
+                            dispatch(decrementQuantity(product.id))
+                          }
+                        >
+                          -
+                        </Button>
+
+                        <Button disabled>{quantity}</Button>
+
+                        <Button
+                          sx={{ width: 22, minWidth: 22 }}
+                          onClick={() =>
+                            dispatch(incrementQuantity(product.id))
+                          }
+                        >
+                          +
+                        </Button>
                       </ButtonGroup>
                     </Box>
                   </CardContent>
@@ -193,7 +253,7 @@ export default function CartPage() {
                 variant="contained"
                 color="primary"
                 fullWidth
-                onClick={() => alert("Pedido realizado com sucesso!")}
+                onClick={handleFinalizePurchase}
               >
                 Finalizar Compra
               </Button>

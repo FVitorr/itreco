@@ -9,7 +9,6 @@ import { AppDispatch } from "../../app/store";
 import { addProductToCart } from "../../features/cart/cartSlice";
 import { toast } from "react-toastify";
 import { MotionButton } from "./button";
-import { sendAddToCart } from "../../services/cart.service";
 
 interface CardProductsProps {
   product: Product;
