@@ -19,6 +19,7 @@ import {
   setCartItems,
 } from "../features/cart/cartSlice";
 import { getCart, syncCartWithBackend } from "../services/cart.service";
+import {toast} from "react-toastify";
 
 export default function CartPage() {
   const dispatch = useDispatch();
@@ -84,16 +85,13 @@ export default function CartPage() {
     }
 
     try {
-      await syncCartWithBackend(user.id, selectedItems, total);
+      const resp = await syncCartWithBackend(user.id, selectedItems, total);
+      toast.success("Operacação realizada com sucesso");
     } catch (error) {
-      console.error("Erro ao sincronizar carrinho:", error);
+      toast.error("Erro ao sincronizar carrinho: " + error);
     }
   };
 
-  if (!user) {
-    alert("Você precisa estar logado para visualizar o carrinho.");
-    return null;
-  }
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>

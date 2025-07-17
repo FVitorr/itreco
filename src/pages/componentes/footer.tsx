@@ -4,6 +4,24 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 
 export default function Footer() {
+    const list = [
+        {
+            title: "Empresa",
+            links: ["Sobre nós", "Carreiras", "Imprensa"],
+            showFrom: "xs", // Sempre visível
+        },
+        {
+            title: "Suporte",
+            links: ["Central de Ajuda", "Contato", "Termos de Uso"],
+            showFrom: "sm", // Visível em sm+
+        },
+        {
+            title: "Parceiros",
+            links: ["Seja um parceiro", "Entregadores", "Lojas"],
+            showFrom: "md", // Visível em md+
+        },
+    ];
+
     return (
         <Box
             component="footer"
@@ -12,13 +30,12 @@ export default function Footer() {
             <Box sx={{ maxWidth: 1200, mx: "auto", px: { xs: 2, md: 3 } }}>
                 <Stack
                     direction="row"
-                    spacing={8}
+                    spacing={4}
+                    flexWrap="nowrap"
                     justifyContent="space-between"
-                    flexWrap="nowrap" // linha única, sem wrap
-                    sx={{ overflow: "hidden" }} // evita scroll horizontal
                 >
-                    {/* Logo e descrição - sempre visível */}
-                    <Box sx={{ flex: "0 0 220px", minWidth: 220 }}>
+                    {/* Logo + descrição */}
+                    <Box sx={{ flex: "1 1 220px", minWidth: 220, mb: { xs: 4, md: 0 } }}>
                         <Stack direction="row" alignItems="center" spacing={1} mb={2}>
                             <Box
                                 sx={{
@@ -42,37 +59,19 @@ export default function Footer() {
                         </Typography>
                     </Box>
 
-                    {/* Colunas de links */}
-                    {[
-                        {
-                            title: "Empresa",
-                            links: ["Sobre nós", "Carreiras", "Imprensa"],
-                            hideBelowMd: false,
-                        },
-                        {
-                            title: "Suporte",
-                            links: ["Central de Ajuda", "Contato", "Termos de Uso"],
-                            hideBelowMd: true,
-                            hideBelowSm: false,
-                        },
-                        {
-                            title: "Parceiros",
-                            links: ["Seja um parceiro", "Entregadores", "Lojas"],
-                            hideBelowMd: true,
-                            hideBelowSm: true,
-                        },
-                    ].map(({ title, links, hideBelowMd, hideBelowSm }) => (
+                    {/* Colunas de navegação */}
+                    {list.map(({ title, links, showFrom }) => (
                         <Box
                             key={title}
                             sx={{
                                 flex: "1 1 160px",
                                 minWidth: 160,
                                 display: {
-                                    xs: "none", // esconde tudo no xs (celular)
-                                    sm: hideBelowSm ? "none" : "block", // pode esconder a penúltima coluna em sm
-                                    md: hideBelowMd ? "none" : "block", // pode esconder algumas colunas em md
-                                    lg: "block", // mostra em lg+
+                                    xs: showFrom === "xs" ? "block" : "none",
+                                    sm: showFrom === "sm" || showFrom === "xs" ? "block" : "none",
+                                    md: "block",
                                 },
+                                mb: { xs: 4, md: 0 },
                             }}
                             component="nav"
                             aria-label={title}
@@ -97,13 +96,13 @@ export default function Footer() {
                                                 transition: "color 0.3s",
                                                 display: "inline-block",
                                                 padding: "4px 0",
-                                                outline: "none", // remove contorno azul no foco
+                                                outline: "none",
                                             }}
                                             onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
                                             onMouseOut={(e) => (e.currentTarget.style.color = "grey.400")}
-                                            onFocus={(e) => (e.currentTarget.style.color = "#fff")}    // mantém cor no foco
-                                            onBlur={(e) => (e.currentTarget.style.color = "grey.400")}  // volta cor ao perder foco
-                                            onClick={(e) => e.preventDefault()} // evita scroll se quiser
+                                            onFocus={(e) => (e.currentTarget.style.color = "#fff")}
+                                            onBlur={(e) => (e.currentTarget.style.color = "grey.400")}
+                                            onClick={(e) => e.preventDefault()}
                                         >
                                             {text}
                                         </a>

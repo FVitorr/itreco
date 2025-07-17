@@ -184,7 +184,7 @@ export default function AllProducts() {
           </Paper>
 
           {/* Lista de produtos */}
-          <Box sx={{ py: 8 }}>
+          <Box sx={{ py: 8, display:"flex", alignItems:"center", justifyContent: "center", maxWidth: 1200}}>
             {loading ? (
                 <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
                   <CircularProgress />
@@ -196,9 +196,11 @@ export default function AllProducts() {
                     sx={{
                       display: "grid",
                       gridTemplateColumns: {
-                        xs: "1fr",
-                        md: "repeat(2, 1fr)",
-                        lg: "repeat(4, 1fr)",
+                        xs: "1fr",                // até 600px: 1 coluna
+                        sm: "repeat(2, 1fr)",     // de 600px a 900px: 2 colunas
+                        md: "repeat(3, 1fr)",     // de 900px a 1200px: 3 colunas
+                        lg: "repeat(4, 1fr)",     // de 1200px a 1536px: 4 colunas
+                        xl: "repeat(5, 1fr)",     // acima de 1536px: 5 colunas (opcional)
                       },
                       gap: 3,
                     }}

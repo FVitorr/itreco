@@ -89,7 +89,7 @@ export default function ProductsCrudPage() {
     try {
       const response = await getProductStores({
         page: pageNumber,
-        size: 10,
+        size: 6,
       });
       setProducts(response.content || []);
       setTotalPages(response.totalPages || 1);
@@ -180,6 +180,7 @@ export default function ProductsCrudPage() {
         bgcolor: "#f9fafb",
         display: "flex",
         flexDirection: "column",
+        maxHeight: 1200
       }}
     >
       <Header />
@@ -213,8 +214,12 @@ export default function ProductsCrudPage() {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-              gap: 4,
+              gridTemplateColumns: {
+                xs: "1fr",        // 1 coluna em telas pequenas
+                sm: "repeat(2, 1fr)",  // 2 colunas a partir de sm (~600px)
+                md: "repeat(3, 1fr)",  // 3 colunas a partir de md (~900px)
+              },
+              gap: 2,
             }}
           >
             {products.map((product) => (

@@ -32,7 +32,7 @@ export default function ProductCardEdit({
           transform: "scale(1.03)",
           boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
         },
-        minWidth: 350,
+        minWidth: 320,
       }}
       onClick={toggleExpanded}
     >
